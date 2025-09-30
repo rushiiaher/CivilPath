@@ -1,0 +1,33 @@
+{
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/auth/(.*)",
+      "destination": "/api/auth"
+    },
+    {
+      "source": "/api/exams/(.*)",
+      "destination": "/api/exams"
+    },
+    {
+      "source": "/api/resources/(.*)",
+      "destination": "/api/resources"
+    },
+    {
+      "source": "/api/blog/(.*)",
+      "destination": "/api/blog"
+    },
+    {
+      "source": "/api/categories/(.*)",
+      "destination": "/api/categories"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/health"
+    }
+  ]
+}
