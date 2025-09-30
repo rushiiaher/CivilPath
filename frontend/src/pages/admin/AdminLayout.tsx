@@ -52,11 +52,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                   Blog Posts
                 </Link>
               </li>
-              <li>
-                <Link to="/admin/categories" className="block p-2 hover:bg-gray-100 rounded">
-                  Categories
-                </Link>
-              </li>
+
             </ul>
           </div>
         </div>
