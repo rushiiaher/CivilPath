@@ -16,6 +16,7 @@ interface Resource {
 export default function AdminResources() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -61,8 +62,10 @@ export default function AdminResources() {
     try {
       const data = await apiRequest('/resources');
       setResources(data.records || []);
+      setError('');
     } catch (error) {
       console.error('Error fetching resources:', error);
+      setError('Failed to load resources');
     } finally {
       setLoading(false);
     }
@@ -83,7 +86,7 @@ export default function AdminResources() {
     }
   };
 
-  if (loading) return <AdminLayout title="Resources"><div>Loading...</div></AdminLayout>;
+
 
   return (
     <AdminLayout title="Resources">
@@ -151,26 +154,40 @@ export default function AdminResources() {
       )}
 
       <div className="bg-white rounded-lg shadow">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left">Title</th>
-              <th className="px-4 py-2 text-left">Exam</th>
-              <th className="px-4 py-2 text-left">Category</th>
-              <th className="px-4 py-2 text-left">File Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resources.map((resource) => (
-              <tr key={resource.id} className="border-t">
-                <td className="px-4 py-2">{resource.title}</td>
-                <td className="px-4 py-2">{resource.exam_name || 'N/A'}</td>
-                <td className="px-4 py-2">{resource.category_name || 'N/A'}</td>
-                <td className="px-4 py-2">{resource.file_type}</td>
+        {loading ? (
+          <div className="p-4">Loading...</div>
+        ) : error ? (
+          <div className="p-4 text-red-600">{error}</div>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left">Title</th>
+                <th className="px-4 py-2 text-left">Exam</th>
+                <th className="px-4 py-2 text-left">Category</th>
+                <th className="px-4 py-2 text-left">File Type</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {resources.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                    No resources found
+                  </td>
+                </tr>
+              ) : (
+                resources.map((resource) => (
+                  <tr key={resource.id} className="border-t">
+                    <td className="px-4 py-2">{resource.title}</td>
+                    <td className="px-4 py-2">{resource.exam_name || 'N/A'}</td>
+                    <td className="px-4 py-2">{resource.category_name || 'N/A'}</td>
+                    <td className="px-4 py-2">{resource.file_type}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </AdminLayout>
   );
