@@ -20,6 +20,7 @@ export default function AdminExamInfo() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingInfo, setEditingInfo] = useState<ExamInfo | null>(null);
   const [formData, setFormData] = useState({
     exam_id: '',
     section_type: 'eligibility',
@@ -62,17 +63,63 @@ export default function AdminExamInfo() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check for duplicate section type for same exam
+    if (!editingInfo) {
+      const duplicate = examInfos.find(info => 
+        info.exam_id === formData.exam_id && info.section_type === formData.section_type
+      );
+      if (duplicate) {
+        alert('This section type already exists for this exam. Please edit the existing one.');
+        return;
+      }
+    }
+    
     try {
-      await apiRequest('/exam-info', {
-        method: 'POST',
-        body: JSON.stringify(formData)
-      });
+      if (editingInfo) {
+        await apiRequest(`/exam-info?id=${editingInfo.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(formData)
+        });
+      } else {
+        await apiRequest('/exam-info', {
+          method: 'POST',
+          body: JSON.stringify(formData)
+        });
+      }
       fetchData();
-      setShowForm(false);
-      setFormData({ exam_id: '', section_type: 'eligibility', title: '', content: '' });
+      resetForm();
     } catch (error) {
       console.error('Error saving exam info:', error);
     }
+  };
+
+  const handleEdit = (info: ExamInfo) => {
+    setEditingInfo(info);
+    setFormData({
+      exam_id: info.exam_id,
+      section_type: info.section_type,
+      title: info.title,
+      content: info.content
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this exam information?')) {
+      try {
+        await apiRequest(`/exam-info?id=${id}`, { method: 'DELETE' });
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting exam info:', error);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ exam_id: '', section_type: 'eligibility', title: '', content: '' });
+    setEditingInfo(null);
+    setShowForm(false);
   };
 
   const sectionTypes = [
@@ -96,7 +143,9 @@ export default function AdminExamInfo() {
 
       {showForm && (
         <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h3 className="text-lg font-semibold mb-4">Add Exam Information</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {editingInfo ? 'Edit Exam Information' : 'Add Exam Information'}
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -120,6 +169,7 @@ export default function AdminExamInfo() {
                   onChange={(e) => setFormData({...formData, section_type: e.target.value})}
                   className="w-full px-3 py-2 border rounded"
                   required
+                  disabled={!!editingInfo}
                 >
                   {sectionTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -152,11 +202,11 @@ export default function AdminExamInfo() {
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600"
               >
-                Save
+                {editingInfo ? 'Update' : 'Save'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={resetForm}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >
                 Cancel
@@ -197,8 +247,18 @@ export default function AdminExamInfo() {
                     </td>
                     <td className="px-4 py-2">{info.title}</td>
                     <td className="px-4 py-2">
-                      <button className="text-blue-500 mr-2 hover:underline">Edit</button>
-                      <button className="text-red-500 hover:underline">Delete</button>
+                      <button 
+                        onClick={() => handleEdit(info)}
+                        className="text-blue-500 mr-2 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(info.id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))
