@@ -17,7 +17,6 @@ export default function AdminExams() {
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     description: '',
     category: '',
     status: 'active'
@@ -26,15 +25,29 @@ export default function AdminExams() {
   const token = localStorage.getItem('adminToken');
 
   const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-    const response = await fetch(`/api${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    try {
+      const response = await fetch(`/api${endpoint}`, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...options.headers
+        }
+      });
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
-    });
-    return response.json();
+      return response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
   };
 
   useEffect(() => {
@@ -88,7 +101,6 @@ export default function AdminExams() {
     setEditingExam(exam);
     setFormData({
       name: exam.name,
-      slug: exam.slug,
       description: exam.description || '',
       category: exam.category || '',
       status: exam.status
@@ -99,7 +111,6 @@ export default function AdminExams() {
   const resetForm = () => {
     setFormData({
       name: '',
-      slug: '',
       description: '',
       category: '',
       status: 'active'
@@ -137,16 +148,7 @@ export default function AdminExams() {
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-bold mb-2">Slug</label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) => setFormData({...formData, slug: e.target.value})}
-                className="w-full px-3 py-2 border rounded"
-                required
-              />
-            </div>
+
             <div className="col-span-2">
               <label className="block text-sm font-bold mb-2">Description</label>
               <textarea

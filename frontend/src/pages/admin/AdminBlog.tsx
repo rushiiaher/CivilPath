@@ -16,19 +16,41 @@ interface BlogPost {
 export default function AdminBlog() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    excerpt: '',
+    content: '',
+    author: 'Admin',
+    status: 'published'
+  });
 
   const token = localStorage.getItem('adminToken');
 
   const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-    const response = await fetch(`/api${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    try {
+      const response = await fetch(`/api${endpoint}`, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...options.headers
+        }
+      });
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
-    });
-    return response.json();
+      return response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
   };
 
   useEffect(() => {
@@ -46,10 +68,108 @@ export default function AdminBlog() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await apiRequest('/blog', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      });
+      fetchPosts();
+      setShowForm(false);
+      setFormData({ title: '', excerpt: '', content: '', author: 'Admin', status: 'published' });
+    } catch (error) {
+      console.error('Error saving blog post:', error);
+    }
+  };
+
   if (loading) return <AdminLayout title="Blog Posts"><div>Loading...</div></AdminLayout>;
 
   return (
     <AdminLayout title="Blog Posts">
+      <div className="mb-4">
+        <button
+          onClick={() => setShowForm(true)}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Add New Post
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
+          <h3 className="text-lg font-semibold mb-4">Add New Blog Post</h3>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold mb-2">Title</label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                className="w-full px-3 py-2 border rounded"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">Excerpt</label>
+              <textarea
+                value={formData.excerpt}
+                onChange={(e) => setFormData({...formData, excerpt: e.target.value})}
+                className="w-full px-3 py-2 border rounded"
+                rows={2}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">Content</label>
+              <textarea
+                value={formData.content}
+                onChange={(e) => setFormData({...formData, content: e.target.value})}
+                className="w-full px-3 py-2 border rounded"
+                rows={6}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold mb-2">Author</label>
+                <input
+                  type="text"
+                  value={formData.author}
+                  onChange={(e) => setFormData({...formData, author: e.target.value})}
+                  className="w-full px-3 py-2 border rounded"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                  className="w-full px-3 py-2 border rounded"
+                >
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       <div className="bg-white rounded-lg shadow">
         <table className="w-full">
           <thead className="bg-gray-50">
