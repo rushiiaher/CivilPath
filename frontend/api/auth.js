@@ -19,8 +19,20 @@ export default async function handler(req, res) {
   const { method } = req;
   const path = req.url.split('?')[0];
 
+  // Check environment variables
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY || !process.env.JWT_SECRET) {
+    return res.status(500).json({ 
+      error: 'Missing environment variables',
+      missing: {
+        supabaseUrl: !process.env.SUPABASE_URL,
+        supabaseKey: !process.env.SUPABASE_ANON_KEY,
+        jwtSecret: !process.env.JWT_SECRET
+      }
+    });
+  }
+
   try {
-    if (method === 'POST' && path === '/api/auth/create-admin') {
+    if (method === 'POST' && (path === '/api/auth/create-admin' || (path === '/api/auth' && req.body.action === 'create-admin'))) {
       const hashedPassword = await bcrypt.hash('admin123', 10);
       
       const { data, error } = await supabase
@@ -39,7 +51,7 @@ export default async function handler(req, res) {
       return res.json({ message: 'Admin user created', data });
     }
 
-    if (method === 'POST' && path === '/api/auth/login') {
+    if (method === 'POST' && (path === '/api/auth/login' || path === '/api/auth')) {
       const { username, password } = req.body;
 
       const { data: admin, error } = await supabase
