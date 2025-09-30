@@ -55,7 +55,7 @@ export default function AdminSubjects() {
   const fetchData = async () => {
     try {
       const [subjectsData, examsData] = await Promise.all([
-        apiRequest('/subjects'),
+        apiRequest('/admin?type=subjects'),
         apiRequest('/exams')
       ]);
       setSubjects(subjectsData.records || []);
@@ -70,7 +70,7 @@ export default function AdminSubjects() {
   const fetchStages = async (examId: string) => {
     if (!examId) return;
     try {
-      const data = await apiRequest(`/stages?exam_id=${examId}`);
+      const data = await apiRequest(`/admin?type=stages&exam_id=${examId}`);
       setStages(data.records || []);
     } catch (error) {
       console.error('Error fetching stages:', error);
@@ -85,7 +85,7 @@ export default function AdminSubjects() {
         slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       };
       
-      await apiRequest('/subjects', {
+      await apiRequest('/admin?type=subjects', {
         method: 'POST',
         body: JSON.stringify(dataToSend)
       });

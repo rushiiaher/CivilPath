@@ -44,7 +44,7 @@ export default function AdminDashboard() {
         apiRequest('/exams'),
         apiRequest('/resources'),
         apiRequest('/blog'),
-        apiRequest('/stages')
+        apiRequest('/admin?type=stages')
       ]);
 
       setStats({

@@ -35,7 +35,7 @@ export default function AdminUploads() {
 
   const fetchUploads = async () => {
     try {
-      const data = await apiRequest('/uploads');
+      const data = await apiRequest('/admin?type=uploads');
       setUploads(data.records || []);
     } catch (error) {
       console.error('Error fetching uploads:', error);
@@ -83,7 +83,7 @@ export default function AdminUploads() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this file?')) {
       try {
-        await apiRequest(`/uploads?id=${id}`, { method: 'DELETE' });
+        await apiRequest(`/admin?type=uploads&id=${id}`, { method: 'DELETE' });
         fetchUploads();
       } catch (error) {
         console.error('Error deleting file:', error);

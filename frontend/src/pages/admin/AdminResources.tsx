@@ -96,7 +96,7 @@ export default function AdminResources() {
       const [resourcesData, examsData, resourceTypesData] = await Promise.all([
         apiRequest('/resources'),
         apiRequest('/exams'),
-        apiRequest('/resource-types')
+        apiRequest('/admin?type=resource-types')
       ]);
       
       setResources(resourcesData.records || []);
@@ -114,7 +114,7 @@ export default function AdminResources() {
   const fetchStages = async (examId: string) => {
     if (!examId) return;
     try {
-      const data = await apiRequest(`/stages?exam_id=${examId}`);
+      const data = await apiRequest(`/admin?type=stages&exam_id=${examId}`);
       setStages(data.records || []);
     } catch (error) {
       console.error('Error fetching stages:', error);
@@ -124,7 +124,7 @@ export default function AdminResources() {
   const fetchSubjects = async (stageId: string) => {
     if (!stageId) return;
     try {
-      const data = await apiRequest(`/subjects?stage_id=${stageId}`);
+      const data = await apiRequest(`/admin?type=subjects&stage_id=${stageId}`);
       setSubjects(data.records || []);
     } catch (error) {
       console.error('Error fetching subjects:', error);

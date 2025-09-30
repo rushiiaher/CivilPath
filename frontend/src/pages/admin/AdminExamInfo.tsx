@@ -49,7 +49,7 @@ export default function AdminExamInfo() {
   const fetchData = async () => {
     try {
       const [examInfoData, examsData] = await Promise.all([
-        apiRequest('/exam-info'),
+        apiRequest('/admin?type=exam-info'),
         apiRequest('/exams')
       ]);
       setExamInfos(examInfoData.records || []);
@@ -77,12 +77,12 @@ export default function AdminExamInfo() {
     
     try {
       if (editingInfo) {
-        await apiRequest(`/exam-info?id=${editingInfo.id}`, {
+        await apiRequest(`/admin?type=exam-info&id=${editingInfo.id}`, {
           method: 'PUT',
           body: JSON.stringify(formData)
         });
       } else {
-        await apiRequest('/exam-info', {
+        await apiRequest('/admin?type=exam-info', {
           method: 'POST',
           body: JSON.stringify(formData)
         });
@@ -108,7 +108,7 @@ export default function AdminExamInfo() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this exam information?')) {
       try {
-        await apiRequest(`/exam-info?id=${id}`, { method: 'DELETE' });
+        await apiRequest(`/admin?type=exam-info&id=${id}`, { method: 'DELETE' });
         fetchData();
       } catch (error) {
         console.error('Error deleting exam info:', error);
