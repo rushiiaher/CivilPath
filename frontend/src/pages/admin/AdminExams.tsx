@@ -26,7 +26,7 @@ export default function AdminExams() {
   const token = localStorage.getItem('adminToken');
 
   const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-    const response = await fetch(`http://localhost:3001/api${endpoint}`, {
+    const response = await fetch(`/api${endpoint}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ export default function AdminExams() {
     e.preventDefault();
     try {
       if (editingExam) {
-        await apiRequest(`/exams/${editingExam.id}`, {
+        await apiRequest(`/exams?id=${editingExam.id}`, {
           method: 'PUT',
           body: JSON.stringify(formData)
         });
@@ -76,7 +76,7 @@ export default function AdminExams() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this exam?')) {
       try {
-        await apiRequest(`/exams/${id}`, { method: 'DELETE' });
+        await apiRequest(`/exams?id=${id}`, { method: 'DELETE' });
         fetchExams();
       } catch (error) {
         console.error('Error deleting exam:', error);
