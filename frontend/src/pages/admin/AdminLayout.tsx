@@ -31,28 +31,39 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
       <div className="flex">
         <div className="w-64 bg-white shadow-md min-h-screen">
           <div className="p-4">
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               <li>
-                <Link to="/admin/dashboard" className="block p-2 hover:bg-gray-100 rounded">
-                  Dashboard
+                <Link to="/admin/dashboard" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  📊 Dashboard
                 </Link>
               </li>
-              <li>
-                <Link to="/admin/exams" className="block p-2 hover:bg-gray-100 rounded">
-                  Exams
+              <li className="pt-2">
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2 mb-1">Exam Management</div>
+                <Link to="/admin/exams" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  📚 Exams
+                </Link>
+                <Link to="/admin/exam-info" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  📋 Exam Information
+                </Link>
+                <Link to="/admin/stages" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  🎯 Exam Stages
+                </Link>
+                <Link to="/admin/subjects" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  📖 Subjects
                 </Link>
               </li>
-              <li>
-                <Link to="/admin/resources" className="block p-2 hover:bg-gray-100 rounded">
-                  Resources
+              <li className="pt-2">
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2 mb-1">Content</div>
+                <Link to="/admin/resources" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  📁 Resources
+                </Link>
+                <Link to="/admin/blog" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  ✍️ Blog Posts
+                </Link>
+                <Link to="/admin/uploads" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  📤 File Uploads
                 </Link>
               </li>
-              <li>
-                <Link to="/admin/blog" className="block p-2 hover:bg-gray-100 rounded">
-                  Blog Posts
-                </Link>
-              </li>
-
             </ul>
           </div>
         </div>

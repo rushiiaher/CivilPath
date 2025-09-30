@@ -68,15 +68,20 @@ export default function AdminExams() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const dataToSend = {
+        ...formData,
+        slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      };
+
       if (editingExam) {
         await apiRequest(`/exams?id=${editingExam.id}`, {
           method: 'PUT',
-          body: JSON.stringify(formData)
+          body: JSON.stringify(dataToSend)
         });
       } else {
         await apiRequest('/exams', {
           method: 'POST',
-          body: JSON.stringify(formData)
+          body: JSON.stringify(dataToSend)
         });
       }
       fetchExams();
@@ -119,10 +124,8 @@ export default function AdminExams() {
     setShowForm(false);
   };
 
-  if (loading) return <AdminLayout title="Exams"><div>Loading...</div></AdminLayout>;
-
   return (
-    <AdminLayout title="Exams">
+    <AdminLayout title="Exams Management">
       <div className="mb-4">
         <button
           onClick={() => setShowForm(true)}
@@ -139,16 +142,33 @@ export default function AdminExams() {
           </h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold mb-2">Name</label>
+              <label className="block text-sm font-bold mb-2">Exam Name *</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 className="w-full px-3 py-2 border rounded"
+                placeholder="e.g., UPSC Civil Services"
                 required
               />
             </div>
-
+            <div>
+              <label className="block text-sm font-bold mb-2">Category</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                className="w-full px-3 py-2 border rounded"
+              >
+                <option value="">Select Category</option>
+                <option value="Central Government">Central Government</option>
+                <option value="State Government">State Government</option>
+                <option value="Banking">Banking</option>
+                <option value="Railway">Railway</option>
+                <option value="Defense">Defense</option>
+                <option value="Technical Services">Technical Services</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
             <div className="col-span-2">
               <label className="block text-sm font-bold mb-2">Description</label>
               <textarea
@@ -156,15 +176,7 @@ export default function AdminExams() {
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 className="w-full px-3 py-2 border rounded"
                 rows={3}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold mb-2">Category</label>
-              <input
-                type="text"
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                className="w-full px-3 py-2 border rounded"
+                placeholder="Brief description of the exam"
               />
             </div>
             <div>
@@ -183,7 +195,7 @@ export default function AdminExams() {
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600"
               >
-                Save
+                {editingExam ? 'Update' : 'Save'}
               </button>
               <button
                 type="button"
@@ -198,45 +210,62 @@ export default function AdminExams() {
       )}
 
       <div className="bg-white rounded-lg shadow">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-left">Category</th>
-              <th className="px-4 py-2 text-left">Status</th>
-              <th className="px-4 py-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {exams.map((exam) => (
-              <tr key={exam.id} className="border-t">
-                <td className="px-4 py-2">{exam.name}</td>
-                <td className="px-4 py-2">{exam.category || 'N/A'}</td>
-                <td className="px-4 py-2">
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    exam.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {exam.status}
-                  </span>
-                </td>
-                <td className="px-4 py-2">
-                  <button
-                    onClick={() => handleEdit(exam)}
-                    className="text-blue-500 mr-2 hover:underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(exam.id)}
-                    className="text-red-500 hover:underline"
-                  >
-                    Delete
-                  </button>
-                </td>
+        {loading ? (
+          <div className="p-4">Loading...</div>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2 text-left">Category</th>
+                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {exams.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                    No exams found. Add your first exam to get started.
+                  </td>
+                </tr>
+              ) : (
+                exams.map((exam) => (
+                  <tr key={exam.id} className="border-t">
+                    <td className="px-4 py-2">
+                      <div>
+                        <div className="font-medium">{exam.name}</div>
+                        <div className="text-sm text-gray-500">{exam.description}</div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2">{exam.category || 'N/A'}</td>
+                    <td className="px-4 py-2">
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        exam.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {exam.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => handleEdit(exam)}
+                        className="text-blue-500 mr-2 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(exam.id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </AdminLayout>
   );
