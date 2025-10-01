@@ -51,6 +51,9 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                 <Link to="/admin/subjects" className="block p-2 hover:bg-gray-100 rounded text-sm">
                   📖 Subjects
                 </Link>
+                <Link to="/admin/syllabus" className="block p-2 hover:bg-gray-100 rounded text-sm">
+                  📋 Syllabus
+                </Link>
               </li>
               <li className="pt-2">
                 <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-2 mb-1">Content</div>
@@ -60,9 +63,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                 <Link to="/admin/blog" className="block p-2 hover:bg-gray-100 rounded text-sm">
                   ✍️ Blog Posts
                 </Link>
-                <Link to="/admin/uploads" className="block p-2 hover:bg-gray-100 rounded text-sm">
-                  📤 File Uploads
-                </Link>
+
               </li>
             </ul>
           </div>

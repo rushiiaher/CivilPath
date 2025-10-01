@@ -173,7 +173,8 @@ INSERT INTO resource_types (name, slug, icon) VALUES
 ('External Link', 'link', 'external-link'),
 ('Practice Test', 'test', 'clipboard-check'),
 ('Notes', 'notes', 'file-text'),
-('Previous Papers', 'previous-papers', 'archive');
+('Previous Papers', 'previous-papers', 'archive'),
+('Syllabus', 'syllabus', 'book-open');
 
 -- Insert default blog categories
 INSERT INTO blog_categories (name, slug, description, color) VALUES

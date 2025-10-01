@@ -189,9 +189,6 @@ const ExamDetail = () => {
   };
 
   const getExamInfoContent = (subTab: string) => {
-    // All exams now use dynamic data
-    
-    // Use dynamic exam info data
     const typeMap = {
       'exam-pattern': 'pattern',
       'exam-syllabus': 'syllabus', 
@@ -199,6 +196,83 @@ const ExamDetail = () => {
     };
     
     const infoType = typeMap[subTab as keyof typeof typeMap];
+    
+    // Special handling for syllabus section
+    if (subTab === 'exam-syllabus') {
+      const syllabusResources = resources.filter(r => r.resource_type_name === 'Syllabus');
+      const infoItems = examInfo.filter(item => item.section_type === infoType);
+      
+      return (
+        <div className="space-y-6">
+          {/* Exam name and description */}
+          <div className="text-center mb-8">
+            <h3 className="text-2xl font-bold text-blue-600 mb-2">{exam?.name} Syllabus</h3>
+            <p className="text-gray-600">Comprehensive syllabus for {exam?.name} Examination</p>
+          </div>
+          
+          {/* Stage-wise syllabus cards */}
+          <div className="space-y-4">
+            {stages.map((stage, index) => {
+              const colors = [
+                { bg: 'bg-blue-50', border: 'border-blue-200', icon: 'bg-blue-500', text: 'text-blue-600' },
+                { bg: 'bg-green-50', border: 'border-green-200', icon: 'bg-green-500', text: 'text-green-600' },
+                { bg: 'bg-purple-50', border: 'border-purple-200', icon: 'bg-purple-500', text: 'text-purple-600' },
+                { bg: 'bg-orange-50', border: 'border-orange-200', icon: 'bg-orange-500', text: 'text-orange-600' }
+              ];
+              const color = colors[index % colors.length];
+              
+              return (
+                <div key={stage.id} className={`${color.bg} ${color.border} border rounded-lg p-6`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`${color.icon} text-white p-3 rounded-lg`}>
+                      <BookOpen className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`font-semibold text-lg ${color.text}`}>{stage.name}</h4>
+                      <p className="text-gray-600">{stage.description || `${stage.name} examination syllabus and pattern`}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Syllabus download buttons */}
+          {syllabusResources.length > 0 && (
+            <div className="mt-8">
+              <div className="flex flex-wrap gap-4 justify-center">
+                {syllabusResources.map((resource) => (
+                  <Button 
+                    key={resource.id}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2"
+                    asChild
+                  >
+                    <a href={resource.file_path || resource.external_url} target="_blank" rel="noopener noreferrer">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      {resource.title}
+                    </a>
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Text content from exam info */}
+          {infoItems.map((item, index) => (
+            <div key={index} className="bg-gray-50 p-6 rounded-lg">
+              <h4 className="font-semibold mb-3">{item.title}</h4>
+              <div className="space-y-2 text-sm">
+                <div dangerouslySetInnerHTML={{ __html: item.content.replace(/\n/g, '<br>') }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    // Regular exam info content
     const infoItems = examInfo.filter(item => item.section_type === infoType);
     
     if (infoItems.length === 0) {
