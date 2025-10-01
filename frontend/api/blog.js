@@ -74,7 +74,8 @@ export default async function handler(req, res) {
       
       const records = data.map(post => ({
         ...post,
-        category_name: post.blog_categories?.name
+        category_name: post.blog_categories?.name,
+        images: post.images || []
       }));
 
       return res.json({ records });
@@ -86,9 +87,11 @@ export default async function handler(req, res) {
     }
 
     if (method === 'POST') {
+      const { images, ...postData } = req.body;
+      
       const { data, error } = await supabase
         .from('blog_posts')
-        .insert([req.body])
+        .insert([{ ...postData, images: images || [] }])
         .select()
         .single();
 

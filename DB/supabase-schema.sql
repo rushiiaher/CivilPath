@@ -121,6 +121,7 @@ CREATE TABLE blog_posts (
     author VARCHAR(100),
     category_id UUID REFERENCES blog_categories(id) ON DELETE SET NULL,
     featured_image VARCHAR(255),
+    images TEXT[], -- Array of image URLs
     read_time INTEGER DEFAULT 5,
     views INTEGER DEFAULT 0,
     tags TEXT[],
@@ -130,6 +131,17 @@ CREATE TABLE blog_posts (
     published_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Blog images table
+CREATE TABLE blog_images (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    blog_post_id UUID REFERENCES blog_posts(id) ON DELETE CASCADE,
+    image_url VARCHAR(500) NOT NULL,
+    alt_text VARCHAR(255),
+    caption TEXT,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- File uploads tracking

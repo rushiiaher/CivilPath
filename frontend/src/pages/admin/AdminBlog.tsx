@@ -24,8 +24,10 @@ export default function AdminBlog() {
     content: '',
     author: 'Admin',
     category_id: '',
+    featured_image: '',
     status: 'published'
   });
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const token = localStorage.getItem('adminToken');
 
@@ -87,7 +89,8 @@ export default function AdminBlog() {
       });
       fetchPosts();
       setShowForm(false);
-      setFormData({ title: '', excerpt: '', content: '', author: 'Admin', category_id: '', status: 'published' });
+      setFormData({ title: '', excerpt: '', content: '', author: 'Admin', category_id: '', featured_image: '', status: 'published' });
+      setUploadedImages([]);
     } catch (error) {
       console.error('Error saving blog post:', error);
     }
@@ -139,6 +142,55 @@ export default function AdminBlog() {
                 required
               />
             </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">Featured Image URL</label>
+              <input
+                type="url"
+                value={formData.featured_image}
+                onChange={(e) => setFormData({...formData, featured_image: e.target.value})}
+                className="w-full px-3 py-2 border rounded"
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-bold mb-2">Additional Images</label>
+              <div className="space-y-2">
+                {uploadedImages.map((image, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      type="url"
+                      value={image}
+                      onChange={(e) => {
+                        const newImages = [...uploadedImages];
+                        newImages[index] = e.target.value;
+                        setUploadedImages(newImages);
+                      }}
+                      className="flex-1 px-3 py-2 border rounded"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newImages = uploadedImages.filter((_, i) => i !== index);
+                        setUploadedImages(newImages);
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setUploadedImages([...uploadedImages, ''])}
+                  className="text-blue-500 hover:text-blue-700 text-sm"
+                >
+                  + Add Image
+                </button>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-bold mb-2">Author</label>

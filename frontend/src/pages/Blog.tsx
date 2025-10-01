@@ -141,8 +141,19 @@ const Blog = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredPosts.map((post) => (
                 <article key={post.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="h-48 bg-gray-200 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                  <div className="h-48 bg-gray-200 relative overflow-hidden">
+                    {post.featured_image ? (
+                      <img 
+                        src={post.featured_image} 
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div className={`absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center ${post.featured_image ? 'hidden' : ''}`}>
                       <span className="text-gray-500 text-sm">Blog Image</span>
                     </div>
                     <div className="absolute top-4 left-4">
@@ -158,14 +169,43 @@ const Blog = () => {
                       <span className="mr-4">{post.author}</span>
                       <Clock className="w-4 h-4 mr-1" />
                       <span>{post.read_time} min read</span>
+                      <Calendar className="w-4 h-4 ml-4 mr-1" />
+                      <span>{new Date(post.created_at).toLocaleDateString()}</span>
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                       {post.title}
                     </h3>
                     
-                    <p className="text-gray-600 line-clamp-3">
+                    <p className="text-gray-600 line-clamp-3 mb-4">
                       {post.excerpt}
                     </p>
+                    
+                    {/* Additional images preview */}
+                    {post.images && post.images.length > 0 && (
+                      <div className="flex gap-2 mb-4">
+                        {post.images.slice(0, 3).map((image, index) => (
+                          <div key={index} className="w-12 h-12 bg-gray-100 rounded overflow-hidden">
+                            <img 
+                              src={image} 
+                              alt={`Image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        ))}
+                        {post.images.length > 3 && (
+                          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                            <span className="text-xs text-gray-500">+{post.images.length - 3}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center">
+                      Read More <ArrowRight className="w-4 h-4 ml-1" />
+                    </button>
                   </div>
                 </article>
               ))}
