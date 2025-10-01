@@ -79,7 +79,7 @@ CREATE TABLE resources (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     exam_id UUID REFERENCES exams(id) ON DELETE CASCADE,
     stage_id UUID REFERENCES exam_stages(id) ON DELETE CASCADE,
-    subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
+    subject_id UUID REFERENCES subjects(id) ON DELETE SET NULL,
     resource_type_id UUID REFERENCES resource_types(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -162,6 +162,7 @@ CREATE INDEX idx_blog_posts_published_at ON blog_posts(published_at);
 -- Create unique constraints
 CREATE UNIQUE INDEX idx_exam_stages_exam_slug ON exam_stages(exam_id, slug);
 CREATE UNIQUE INDEX idx_subjects_stage_slug ON subjects(stage_id, slug);
+CREATE UNIQUE INDEX idx_exam_info_exam_type ON exam_info_sections(exam_id, section_type);
 
 -- Insert default resource types
 INSERT INTO resource_types (name, slug, icon) VALUES

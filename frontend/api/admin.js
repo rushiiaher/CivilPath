@@ -123,7 +123,13 @@ export default async function handler(req, res) {
         const { id, stage_id } = query;
         let queryBuilder = supabase
           .from('subjects')
-          .select(`*, exams!inner(name), exam_stages!inner(name)`)
+          .select(`
+            *,
+            exam_stages!inner(
+              name,
+              exams!inner(name)
+            )
+          `)
           .order('order_index', { ascending: true });
 
         if (id) queryBuilder = queryBuilder.eq('id', id).single();
@@ -135,7 +141,7 @@ export default async function handler(req, res) {
         if (id) return res.json(data);
         const records = data.map(item => ({ 
           ...item, 
-          exam_name: item.exams?.name,
+          exam_name: item.exam_stages?.exams?.name,
           stage_name: item.exam_stages?.name 
         }));
         return res.json({ records });

@@ -23,6 +23,7 @@ export default function AdminBlog() {
     excerpt: '',
     content: '',
     author: 'Admin',
+    category_id: '',
     status: 'published'
   });
 
@@ -74,13 +75,19 @@ export default function AdminBlog() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const dataToSend = {
+        ...formData,
+        slug: formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+        published_at: formData.status === 'published' ? new Date().toISOString() : null
+      };
+      
       await apiRequest('/blog', {
         method: 'POST',
-        body: JSON.stringify(formData)
+        body: JSON.stringify(dataToSend)
       });
       fetchPosts();
       setShowForm(false);
-      setFormData({ title: '', excerpt: '', content: '', author: 'Admin', status: 'published' });
+      setFormData({ title: '', excerpt: '', content: '', author: 'Admin', category_id: '', status: 'published' });
     } catch (error) {
       console.error('Error saving blog post:', error);
     }
@@ -132,7 +139,7 @@ export default function AdminBlog() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-bold mb-2">Author</label>
                 <input
@@ -141,6 +148,22 @@ export default function AdminBlog() {
                   onChange={(e) => setFormData({...formData, author: e.target.value})}
                   className="w-full px-3 py-2 border rounded"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">Category</label>
+                <select
+                  value={formData.category_id}
+                  onChange={(e) => setFormData({...formData, category_id: e.target.value})}
+                  className="w-full px-3 py-2 border rounded"
+                >
+                  <option value="">Select Category</option>
+                  <option value="1">Current Affairs</option>
+                  <option value="2">Study Tips</option>
+                  <option value="3">Exam Updates</option>
+                  <option value="4">Success Stories</option>
+                  <option value="5">General Knowledge</option>
+                  <option value="6">Interview Preparation</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-bold mb-2">Status</label>

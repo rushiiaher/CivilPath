@@ -40,7 +40,9 @@ export default async function handler(req, res) {
           .select(`
             *,
             exams(name),
-            resource_categories(name)
+            exam_stages(name),
+            subjects(name),
+            resource_types(name)
           `)
           .eq('id', id)
           .single();
@@ -54,7 +56,9 @@ export default async function handler(req, res) {
         .select(`
           *,
           exams(name),
-          resource_categories(name)
+          exam_stages(name),
+          subjects(name),
+          resource_types(name)
         `)
         .order('created_at', { ascending: false });
 
@@ -68,7 +72,9 @@ export default async function handler(req, res) {
       const records = data.map(resource => ({
         ...resource,
         exam_name: resource.exams?.name,
-        category_name: resource.resource_categories?.name
+        stage_name: resource.exam_stages?.name,
+        subject_name: resource.subjects?.name,
+        resource_type_name: resource.resource_types?.name
       }));
 
       return res.json({ records });

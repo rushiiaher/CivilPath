@@ -57,8 +57,13 @@ export default async function handler(req, res) {
           *,
           blog_categories(name)
         `)
-        .eq('status', 'published')
         .order('created_at', { ascending: false });
+
+      // Only show published posts for non-authenticated users
+      const user = authenticateToken(req);
+      if (!user) {
+        queryBuilder = queryBuilder.eq('status', 'published');
+      }
 
       if (category_id) {
         queryBuilder = queryBuilder.eq('category_id', category_id);
