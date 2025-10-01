@@ -31,6 +31,8 @@ const ExamDetail = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [categories, setCategories] = useState<ResourceCategory[]>([]);
   const [examInfo, setExamInfo] = useState<any[]>([]);
+  const [stages, setStages] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -48,16 +50,18 @@ const ExamDetail = () => {
       if (foundExam) {
         setExam(foundExam);
         
-        // Load resources, categories, and exam info for this exam
-        const [resourcesResponse, categoriesResponse, examInfoResponse] = await Promise.all([
+        // Load resources and new structure data
+        const [resourcesResponse, examInfoResponse, stagesResponse, subjectsResponse] = await Promise.all([
           apiService.getResourcesByExam(foundExam.id),
-          apiService.getResourceCategoriesByExam(foundExam.id),
-          apiService.getExamInfo(foundExam.id)
+          fetch(`/api/admin?type=exam-info&exam_id=${foundExam.id}`).then(r => r.json()),
+          fetch(`/api/admin?type=stages&exam_id=${foundExam.id}`).then(r => r.json()),
+          fetch(`/api/admin?type=subjects`).then(r => r.json())
         ]);
         
         setResources(resourcesResponse.records || []);
-        setCategories(categoriesResponse.records || []);
         setExamInfo(examInfoResponse.records || []);
+        setStages(stagesResponse.records || []);
+        setSubjects(subjectsResponse.records?.filter((s: any) => s.exam_id === foundExam.id) || []);
       }
     } catch (error) {
       console.error('Error loading exam data:', error);
@@ -94,11 +98,12 @@ const ExamDetail = () => {
     { value: 'exam-pattern', label: 'Exam Pattern', count: 0, isExamInfo: true },
     { value: 'exam-syllabus', label: 'Exam Syllabus', count: 0, isExamInfo: true },
     { value: 'eligibility-criteria', label: 'Eligibility Criteria', count: 0, isExamInfo: true },
-    ...categories.map(category => ({
-      value: category.slug,
-      label: category.name,
-      count: resourcesByCategory[category.name]?.length || 0,
-      isExamInfo: false
+    ...stages.map(stage => ({
+      value: stage.slug,
+      label: stage.name,
+      count: subjects.filter(s => s.stage_id === stage.id).length,
+      isExamInfo: false,
+      isStage: true
     }))
   ];
 
@@ -194,7 +199,7 @@ const ExamDetail = () => {
     };
     
     const infoType = typeMap[subTab as keyof typeof typeMap];
-    const infoItems = examInfo.filter(item => item.type === infoType);
+    const infoItems = examInfo.filter(item => item.section_type === infoType);
     
     if (infoItems.length === 0) {
       return (
@@ -229,19 +234,19 @@ const ExamDetail = () => {
       return getExamInfoContent(tabValue);
     }
 
-    // Find category by slug and show its resources
-    const category = categories.find(cat => cat.slug === tabValue);
-    const categoryResources = category ? resourcesByCategory[category.name] || [] : [];
+    // Find stage by slug and show its subjects
+    const stage = stages.find(s => s.slug === tabValue);
+    const stageSubjects = stage ? subjects.filter(s => s.stage_id === stage.id) : [];
     
-    if (categoryResources.length === 0) {
+    if (stageSubjects.length === 0) {
       return (
         <div className="text-center py-16">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-            No resources available
+            No subjects available
           </h3>
           <p className="text-muted-foreground">
-            We're working on adding more resources for this section. Check back soon!
+            Subjects for this stage will be added soon. Check back later!
           </p>
         </div>
       );
@@ -249,16 +254,14 @@ const ExamDetail = () => {
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categoryResources.map((resource) => (
-          <div key={resource.id} className="bg-white rounded-lg border shadow-sm p-6 hover:shadow-md transition-shadow">
-            <h3 className="font-semibold text-lg mb-2">{resource.title}</h3>
-            <p className="text-muted-foreground text-sm mb-4">{resource.description}</p>
+        {stageSubjects.map((subject) => (
+          <div key={subject.id} className="bg-white rounded-lg border shadow-sm p-6 hover:shadow-md transition-shadow">
+            <h3 className="font-semibold text-lg mb-2">{subject.name}</h3>
+            <p className="text-muted-foreground text-sm mb-4">{subject.description || 'Subject study material and resources'}</p>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{resource.year}</span>
-              <Button size="sm" asChild>
-                <a href={`http://localhost/civilpath-study/backend${resource.file_path}`} target="_blank" rel="noopener noreferrer">
-                  Download
-                </a>
+              <span className="text-xs text-muted-foreground">Stage: {stage?.name}</span>
+              <Button size="sm" variant="outline">
+                View Resources
               </Button>
             </div>
           </div>
@@ -386,7 +389,7 @@ const ExamDetail = () => {
                 </div>
               )}
 
-              {/* Regular Tab Content */}
+              {/* Stage Tab Content */}
               {tabConfig.filter(tab => !tab.isExamInfo).map((tab) => (
                 activeTab === tab.value && (
                   <div key={tab.value} className="space-y-6">
@@ -396,8 +399,8 @@ const ExamDetail = () => {
                       </h2>
                       <p className="text-muted-foreground">
                         {tab.count > 0 
-                          ? `${tab.count} resource${tab.count !== 1 ? 's' : ''} available`
-                          : 'No resources available in this section'
+                          ? `${tab.count} subject${tab.count !== 1 ? 's' : ''} available`
+                          : 'No subjects available in this stage'
                         }
                       </p>
                     </div>
