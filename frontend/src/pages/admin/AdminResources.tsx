@@ -47,6 +47,7 @@ export default function AdminResources() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [formData, setFormData] = useState({
     exam_id: '',
     stage_id: '',
@@ -134,26 +135,74 @@ export default function AdminResources() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiRequest('/resources', {
-        method: 'POST',
-        body: JSON.stringify(formData)
-      });
+      if (editingResource) {
+        await apiRequest(`/resources?id=${editingResource.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(formData)
+        });
+      } else {
+        await apiRequest('/resources', {
+          method: 'POST',
+          body: JSON.stringify(formData)
+        });
+      }
       fetchData();
-      setShowForm(false);
-      setFormData({
-        exam_id: '',
-        stage_id: '',
-        subject_id: '',
-        resource_type_id: '',
-        title: '',
-        description: '',
-        author: '',
-        year: new Date().getFullYear().toString(),
-        external_url: ''
-      });
+      resetForm();
     } catch (error) {
       console.error('Error saving resource:', error);
     }
+  };
+
+  const handleEdit = async (resource: Resource) => {
+    setEditingResource(resource);
+    setFormData({
+      exam_id: resource.exam_id,
+      stage_id: resource.stage_id,
+      subject_id: resource.subject_id || '',
+      resource_type_id: resource.resource_type_id,
+      title: resource.title,
+      description: resource.description || '',
+      author: resource.author || '',
+      year: resource.year || new Date().getFullYear().toString(),
+      external_url: resource.external_url || ''
+    });
+    
+    // Load stages and subjects for the selected exam
+    if (resource.exam_id) {
+      await fetchStages(resource.exam_id);
+      if (resource.stage_id) {
+        await fetchSubjects(resource.stage_id);
+      }
+    }
+    
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this resource?')) {
+      try {
+        await apiRequest(`/resources?id=${id}`, { method: 'DELETE' });
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting resource:', error);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      exam_id: '',
+      stage_id: '',
+      subject_id: '',
+      resource_type_id: '',
+      title: '',
+      description: '',
+      author: '',
+      year: new Date().getFullYear().toString(),
+      external_url: ''
+    });
+    setEditingResource(null);
+    setShowForm(false);
   };
 
   return (
@@ -169,7 +218,9 @@ export default function AdminResources() {
 
       {showForm && (
         <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h3 className="text-lg font-semibold mb-4">Add New Resource</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {editingResource ? 'Edit Resource' : 'Add New Resource'}
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -298,11 +349,11 @@ export default function AdminResources() {
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600"
               >
-                Save
+                {editingResource ? 'Update' : 'Save'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={resetForm}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >
                 Cancel
@@ -350,8 +401,18 @@ export default function AdminResources() {
                     <td className="px-4 py-2">{resource.resource_type_name}</td>
                     <td className="px-4 py-2">{resource.author}</td>
                     <td className="px-4 py-2">
-                      <button className="text-blue-500 mr-2 hover:underline">Edit</button>
-                      <button className="text-red-500 hover:underline">Delete</button>
+                      <button 
+                        onClick={() => handleEdit(resource)}
+                        className="text-blue-500 mr-2 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(resource.id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))

@@ -52,14 +52,16 @@ const ExamDetail = () => {
         
         // Load resources and new structure data
         const [resourcesResponse, examInfoResponse, stagesResponse, subjectsResponse] = await Promise.all([
-          apiService.getResourcesByExam(foundExam.id),
+          fetch(`/api/resources?exam_id=${foundExam.id}`).then(r => r.json()),
           fetch(`/api/admin?type=exam-info&exam_id=${foundExam.id}`).then(r => r.json()),
           fetch(`/api/admin?type=stages&exam_id=${foundExam.id}`).then(r => r.json()),
           fetch(`/api/admin?type=subjects`).then(r => r.json())
         ]);
         
+        console.log('Resources loaded:', resourcesResponse.records);
         setResources(resourcesResponse.records || []);
         setExamInfo(examInfoResponse.records || []);
+        console.log('Stages loaded:', stagesResponse.records);
         setStages(stagesResponse.records || []);
         setSubjects(subjectsResponse.records?.filter((s: any) => s.exam_id === foundExam.id) || []);
       }
@@ -101,7 +103,7 @@ const ExamDetail = () => {
     ...stages.map(stage => ({
       value: stage.slug,
       label: stage.name,
-      count: subjects.filter(s => s.stage_id === stage.id).length,
+      count: resources.filter(r => r.stage_id === stage.id).length,
       isExamInfo: false,
       isStage: true
     }))
@@ -308,38 +310,81 @@ const ExamDetail = () => {
       return getExamInfoContent(tabValue);
     }
 
-    // Find stage by slug and show its subjects
+    // Find stage by slug and show its resources
     const stage = stages.find(s => s.slug === tabValue);
-    const stageSubjects = stage ? subjects.filter(s => s.stage_id === stage.id) : [];
+    const stageResources = stage ? resources.filter(r => r.stage_id === stage.id) : [];
     
-    if (stageSubjects.length === 0) {
+    if (stageResources.length === 0) {
       return (
         <div className="text-center py-16">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-            No subjects available
+            No resources available
           </h3>
           <p className="text-muted-foreground">
-            Subjects for this stage will be added soon. Check back later!
+            Resources for this stage will be added soon. Check back later!
           </p>
         </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stageSubjects.map((subject) => (
-          <div key={subject.id} className="bg-white rounded-lg border shadow-sm p-6 hover:shadow-md transition-shadow">
-            <h3 className="font-semibold text-lg mb-2">{subject.name}</h3>
-            <p className="text-muted-foreground text-sm mb-4">{subject.description || 'Subject study material and resources'}</p>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Stage: {stage?.name}</span>
-              <Button size="sm" variant="outline">
-                View Resources
-              </Button>
+      <div className="space-y-6">
+        {/* Search bar */}
+        <div className="max-w-md">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search resources..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
           </div>
-        ))}
+        </div>
+        
+        {/* Resources grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {stageResources.map((resource) => (
+            <div key={resource.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-6">
+              <h3 className="font-semibold text-lg text-gray-900 mb-2">{resource.title}</h3>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{resource.description}</p>
+              
+              {/* Resource details */}
+              <div className="space-y-2 mb-4">
+                {resource.author && (
+                  <p className="text-xs text-gray-500">Author: {resource.author}</p>
+                )}
+                {resource.year && (
+                  <p className="text-xs text-red-500 font-medium">YEAR: {resource.year}</p>
+                )}
+                {resource.subject_name && (
+                  <p className="text-xs text-gray-500">Subject: {resource.subject_name}</p>
+                )}
+              </div>
+              
+              {/* Download button */}
+              <Button 
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded flex items-center justify-center gap-2"
+                asChild
+              >
+                <a 
+                  href={resource.external_url || resource.file_path} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  DOWNLOAD
+                </a>
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -473,8 +518,8 @@ const ExamDetail = () => {
                       </h2>
                       <p className="text-muted-foreground">
                         {tab.count > 0 
-                          ? `${tab.count} subject${tab.count !== 1 ? 's' : ''} available`
-                          : 'No subjects available in this stage'
+                          ? `${tab.count} resource${tab.count !== 1 ? 's' : ''} available`
+                          : 'No resources available in this stage'
                         }
                       </p>
                     </div>
