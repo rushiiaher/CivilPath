@@ -31,6 +31,27 @@ export default function AdminBlog() {
 
   const token = localStorage.getItem('adminToken');
 
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      
+      const result = await response.json();
+      return result.file?.file_path || URL.createObjectURL(file);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return URL.createObjectURL(file); // Fallback to local URL
+    }
+  };
+
   const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -143,52 +164,58 @@ export default function AdminBlog() {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">Featured Image URL</label>
+              <label className="block text-sm font-bold mb-2">Featured Image</label>
               <input
-                type="url"
-                value={formData.featured_image}
-                onChange={(e) => setFormData({...formData, featured_image: e.target.value})}
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const imageUrl = await uploadImage(file);
+                    setFormData({...formData, featured_image: imageUrl});
+                  }
+                }}
                 className="w-full px-3 py-2 border rounded"
-                placeholder="https://example.com/image.jpg"
               />
+              {formData.featured_image && (
+                <div className="mt-2">
+                  <img src={formData.featured_image} alt="Featured" className="w-32 h-20 object-cover rounded" />
+                </div>
+              )}
             </div>
             
             <div>
               <label className="block text-sm font-bold mb-2">Additional Images</label>
-              <div className="space-y-2">
-                {uploadedImages.map((image, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="url"
-                      value={image}
-                      onChange={(e) => {
-                        const newImages = [...uploadedImages];
-                        newImages[index] = e.target.value;
-                        setUploadedImages(newImages);
-                      }}
-                      className="flex-1 px-3 py-2 border rounded"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newImages = uploadedImages.filter((_, i) => i !== index);
-                        setUploadedImages(newImages);
-                      }}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setUploadedImages([...uploadedImages, ''])}
-                  className="text-blue-500 hover:text-blue-700 text-sm"
-                >
-                  + Add Image
-                </button>
-              </div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={async (e) => {
+                  const files = Array.from(e.target.files || []);
+                  const imageUrls = await Promise.all(files.map(uploadImage));
+                  setUploadedImages([...uploadedImages, ...imageUrls]);
+                }}
+                className="w-full px-3 py-2 border rounded mb-2"
+              />
+              {uploadedImages.length > 0 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {uploadedImages.map((image, index) => (
+                    <div key={index} className="relative">
+                      <img src={image} alt={`Upload ${index}`} className="w-full h-20 object-cover rounded" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newImages = uploadedImages.filter((_, i) => i !== index);
+                          setUploadedImages(newImages);
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             
             <div className="grid grid-cols-3 gap-4">

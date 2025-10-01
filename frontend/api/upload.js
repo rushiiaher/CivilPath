@@ -19,6 +19,12 @@ const authenticateToken = (req) => {
   }
 };
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -38,18 +44,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    // For now, just create a mock upload record
-    const fileName = `file-${Date.now()}.pdf`;
-    const filePath = `/uploads/${fileName}`;
+    // For now, create a mock upload record with a placeholder URL
+    const fileName = `image-${Date.now()}.jpg`;
+    const filePath = `https://via.placeholder.com/400x250?text=Blog+Image`;
 
     const { data, error } = await supabase
       .from('file_uploads')
       .insert([{
-        original_name: 'sample-file.pdf',
+        original_name: fileName,
         file_name: fileName,
         file_path: filePath,
-        file_size: 1024000,
-        mime_type: 'application/pdf',
+        file_size: 50000,
+        mime_type: 'image/jpeg',
         uploaded_by: user.id
       }])
       .select()
