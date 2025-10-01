@@ -152,6 +152,20 @@ export default async function handler(req, res) {
         if (error) throw error;
         return res.status(201).json(data);
       }
+
+      if (method === 'PUT') {
+        const { id } = query;
+        const { data, error } = await supabase.from('subjects').update(req.body).eq('id', id).select().single();
+        if (error) throw error;
+        return res.json(data);
+      }
+
+      if (method === 'DELETE') {
+        const { id } = query;
+        const { error } = await supabase.from('subjects').delete().eq('id', id);
+        if (error) throw error;
+        return res.json({ message: 'Subject deleted successfully' });
+      }
     }
 
     // Uploads

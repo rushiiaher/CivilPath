@@ -27,6 +27,7 @@ export default function AdminSubjects() {
   const [stages, setStages] = useState<Stage[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [formData, setFormData] = useState({
     exam_id: '',
     stage_id: '',
@@ -85,16 +86,56 @@ export default function AdminSubjects() {
         slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       };
       
-      await apiRequest('/admin?type=subjects', {
-        method: 'POST',
-        body: JSON.stringify(dataToSend)
-      });
+      if (editingSubject) {
+        await apiRequest(`/admin?type=subjects&id=${editingSubject.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(dataToSend)
+        });
+      } else {
+        await apiRequest('/admin?type=subjects', {
+          method: 'POST',
+          body: JSON.stringify(dataToSend)
+        });
+      }
       fetchData();
-      setShowForm(false);
-      setFormData({ exam_id: '', stage_id: '', name: '', description: '' });
+      resetForm();
     } catch (error) {
       console.error('Error saving subject:', error);
     }
+  };
+
+  const handleEdit = async (subject: Subject) => {
+    setEditingSubject(subject);
+    setFormData({
+      exam_id: subject.exam_id,
+      stage_id: subject.stage_id,
+      name: subject.name,
+      description: subject.description || ''
+    });
+    
+    // Load stages for the selected exam
+    if (subject.exam_id) {
+      await fetchStages(subject.exam_id);
+    }
+    
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this subject?')) {
+      try {
+        await apiRequest(`/admin?type=subjects&id=${id}`, { method: 'DELETE' });
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting subject:', error);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ exam_id: '', stage_id: '', name: '', description: '' });
+    setEditingSubject(null);
+    setShowForm(false);
   };
 
   return (
@@ -110,7 +151,9 @@ export default function AdminSubjects() {
 
       {showForm && (
         <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h3 className="text-lg font-semibold mb-4">Add New Subject</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {editingSubject ? 'Edit Subject' : 'Add New Subject'}
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -171,11 +214,11 @@ export default function AdminSubjects() {
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600"
               >
-                Save
+                {editingSubject ? 'Update' : 'Save'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={resetForm}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >
                 Cancel
@@ -214,8 +257,18 @@ export default function AdminSubjects() {
                     <td className="px-4 py-2">{subject.stage_name}</td>
                     <td className="px-4 py-2">{subject.description}</td>
                     <td className="px-4 py-2">
-                      <button className="text-blue-500 mr-2 hover:underline">Edit</button>
-                      <button className="text-red-500 hover:underline">Delete</button>
+                      <button 
+                        onClick={() => handleEdit(subject)}
+                        className="text-blue-500 mr-2 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(subject.id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))
