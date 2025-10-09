@@ -87,11 +87,9 @@ export default async function handler(req, res) {
     }
 
     if (method === 'POST') {
-      const { images, ...postData } = req.body;
-      
       const { data, error } = await supabase
         .from('blog_posts')
-        .insert([{ ...postData, images: images || [] }])
+        .insert([req.body])
         .select()
         .single();
 
