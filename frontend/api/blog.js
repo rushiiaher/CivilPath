@@ -87,9 +87,24 @@ export default async function handler(req, res) {
     }
 
     if (method === 'POST') {
+      const postData = { ...req.body };
+      
+      // Convert category_id if it's a number string to actual UUID
+      if (postData.category_id && !postData.category_id.includes('-')) {
+        const categoryMap = {
+          '1': (await supabase.from('blog_categories').select('id').eq('slug', 'current-affairs').single()).data?.id,
+          '2': (await supabase.from('blog_categories').select('id').eq('slug', 'study-tips').single()).data?.id,
+          '3': (await supabase.from('blog_categories').select('id').eq('slug', 'exam-updates').single()).data?.id,
+          '4': (await supabase.from('blog_categories').select('id').eq('slug', 'success-stories').single()).data?.id,
+          '5': (await supabase.from('blog_categories').select('id').eq('slug', 'general-knowledge').single()).data?.id,
+          '6': (await supabase.from('blog_categories').select('id').eq('slug', 'interview-preparation').single()).data?.id
+        };
+        postData.category_id = categoryMap[postData.category_id] || null;
+      }
+      
       const { data, error } = await supabase
         .from('blog_posts')
-        .insert([req.body])
+        .insert([postData])
         .select()
         .single();
 
