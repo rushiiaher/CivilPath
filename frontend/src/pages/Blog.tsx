@@ -141,7 +141,7 @@ const Blog = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredPosts.map((post) => (
                 <article key={post.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="h-48 bg-gray-200 relative overflow-hidden">
+                  <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 relative overflow-hidden flex items-center justify-center">
                     {post.featured_image ? (
                       <img 
                         src={post.featured_image} 
@@ -149,13 +149,11 @@ const Blog = () => {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling.style.display = 'flex';
                         }}
                       />
-                    ) : null}
-                    <div className={`absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center ${post.featured_image ? 'hidden' : ''}`}>
-                      <span className="text-gray-500 text-sm">Blog Image</span>
-                    </div>
+                    ) : (
+                      <span className="text-gray-500 text-sm">📝 Blog Post</span>
+                    )}
                     <div className="absolute top-4 left-4">
                       <span className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-full">
                         {post.category_name || 'General'}
@@ -184,17 +182,17 @@ const Blog = () => {
                     {post.images && post.images.length > 0 && (
                       <div className="flex gap-2 mb-4">
                         {post.images.slice(0, 3).map((image, index) => (
-                          <div key={index} className="w-12 h-12 bg-gray-100 rounded overflow-hidden">
+                          <div key={index} className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
                             <img 
                               src={image} 
                               alt={`Image ${index + 1}`}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement.innerHTML = '🖼️';
                               }}
                             />
                           </div>
-                        ))}
+                        ))
                         {post.images.length > 3 && (
                           <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
                             <span className="text-xs text-gray-500">+{post.images.length - 3}</span>

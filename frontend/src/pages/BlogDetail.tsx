@@ -227,7 +227,7 @@ const BlogDetail = () => {
                         />
                       ) : (
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                          <span className="text-gray-500 text-sm">Blog Image</span>
+                          <span className="text-gray-500 text-sm">📝 Blog Image</span>
                         </div>
                       )}
                     </div>
