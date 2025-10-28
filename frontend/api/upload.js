@@ -19,6 +19,10 @@ const authenticateToken = (req) => {
   }
 };
 
+import formidable from 'formidable';
+import fs from 'fs';
+import path from 'path';
+
 export const config = {
   api: {
     bodyParser: false,
@@ -44,18 +48,41 @@ export default async function handler(req, res) {
   }
 
   try {
-    // For now, create a mock upload record with a placeholder URL
-    const fileName = `image-${Date.now()}.jpg`;
-    const filePath = `https://via.placeholder.com/400x250?text=Blog+Image`;
+    const form = formidable({
+      uploadDir: './public/uploads',
+      keepExtensions: true,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+    });
+
+    // Ensure upload directory exists
+    const uploadDir = './public/uploads';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const [fields, files] = await form.parse(req);
+    const file = Array.isArray(files.file) ? files.file[0] : files.file;
+
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const fileName = `${Date.now()}-${file.originalFilename}`;
+    const newPath = path.join(uploadDir, fileName);
+    
+    // Move file to permanent location
+    fs.renameSync(file.filepath, newPath);
+    
+    const filePath = `/uploads/${fileName}`;
 
     const { data, error } = await supabase
       .from('file_uploads')
       .insert([{
-        original_name: fileName,
+        original_name: file.originalFilename,
         file_name: fileName,
         file_path: filePath,
-        file_size: 50000,
-        mime_type: 'image/jpeg',
+        file_size: file.size,
+        mime_type: file.mimetype,
         uploaded_by: user.id
       }])
       .select()
