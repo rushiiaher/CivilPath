@@ -105,13 +105,25 @@ export default async function handler(req, res) {
         postData.images = [];
       }
       
+      // Remove undefined/null fields that might cause issues
+      Object.keys(postData).forEach(key => {
+        if (postData[key] === undefined) {
+          delete postData[key];
+        }
+      });
+      
+      console.log('Inserting blog post:', postData);
+      
       const { data, error } = await supabase
         .from('blog_posts')
         .insert([postData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return res.status(201).json(data);
     }
 
