@@ -201,12 +201,43 @@ const Blog = () => {
                       </div>
                     )}
                     
-                    <Link 
-                      to={`/blog/${post.slug}`}
-                      className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center"
-                    >
-                      Read More <ArrowRight className="w-4 h-4 ml-1" />
-                    </Link>
+                    <div className="flex items-center justify-between">
+                      <Link 
+                        to={`/blog/${post.slug}`}
+                        className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center"
+                      >
+                        Read More <ArrowRight className="w-4 h-4 ml-1" />
+                      </Link>
+                      
+                      {localStorage.getItem('adminToken') && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => window.open(`/admin/blog?edit=${post.id}`, '_blank')}
+                            className="text-green-600 hover:text-green-700 text-xs px-2 py-1 border border-green-300 rounded"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (confirm('Delete this post?')) {
+                                try {
+                                  await fetch(`/api/blog?id=${post.id}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+                                  });
+                                  window.location.reload();
+                                } catch (error) {
+                                  alert('Error deleting post');
+                                }
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-700 text-xs px-2 py-1 border border-red-300 rounded"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </article>
               ))}
