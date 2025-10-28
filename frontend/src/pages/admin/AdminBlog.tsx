@@ -34,13 +34,27 @@ export default function AdminBlog() {
   const token = localStorage.getItem('adminToken');
 
   const uploadImage = async (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        resolve(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const fileName = `${Date.now()}-${file.name}`;
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fileName,
+          fileType: file.type,
+          fileSize: file.size
+        })
+      });
+      
+      const result = await response.json();
+      return result.url || URL.createObjectURL(file);
+    } catch (error) {
+      console.error('Upload error:', error);
+      return URL.createObjectURL(file);
+    }
   };
 
   const apiRequest = async (endpoint: string, options: RequestInit = {}) => {

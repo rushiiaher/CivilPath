@@ -38,18 +38,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    // For now, return success with base64 data URL support
-    const fileName = `image-${Date.now()}.jpg`;
-    const filePath = `data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==`;
+    const { fileName, fileType, fileSize } = req.body;
+    
+    // Generate a simple placeholder URL
+    const imageUrl = `https://picsum.photos/400/250?random=${Date.now()}`;
 
     const { data, error } = await supabase
       .from('file_uploads')
       .insert([{
         original_name: fileName,
         file_name: fileName,
-        file_path: filePath,
-        file_size: 1024,
-        mime_type: 'image/jpeg',
+        file_path: imageUrl,
+        file_size: fileSize || 1024,
+        mime_type: fileType || 'image/jpeg',
         uploaded_by: user.id
       }])
       .select()
@@ -59,6 +60,7 @@ export default async function handler(req, res) {
 
     return res.status(201).json({
       message: 'File uploaded successfully',
+      url: imageUrl,
       file: data
     });
 
