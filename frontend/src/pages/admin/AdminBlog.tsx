@@ -93,7 +93,8 @@ export default function AdminBlog() {
         ...formData,
         slug: formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
         published_at: formData.status === 'published' ? new Date().toISOString() : null,
-        images: uploadedImages
+        images: uploadedImages,
+        featured_image: formData.featured_image
       };
       
       if (editingPost) {

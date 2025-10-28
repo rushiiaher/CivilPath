@@ -74,12 +74,15 @@ export default async function handler(req, res) {
       const { data, error } = await queryBuilder;
       if (error) throw error;
       
-      const records = data.map(post => ({
-        ...post,
-        category_name: post.blog_categories?.name,
-        images: post.images || [],
-        read_time: post.read_time || 5
-      }));
+      const records = data.map(post => {
+        console.log('Blog post images:', post.images);
+        return {
+          ...post,
+          category_name: post.blog_categories?.name,
+          images: post.images || [],
+          read_time: post.read_time || 5
+        };
+      });
 
       return res.json({ records });
     }
@@ -103,6 +106,11 @@ export default async function handler(req, res) {
           '6': (await supabase.from('blog_categories').select('id').eq('slug', 'interview-preparation').single()).data?.id
         };
         postData.category_id = categoryMap[postData.category_id] || null;
+      }
+      
+      // Ensure images is properly formatted as array
+      if (postData.images && !Array.isArray(postData.images)) {
+        postData.images = [];
       }
       
       const { data, error } = await supabase
