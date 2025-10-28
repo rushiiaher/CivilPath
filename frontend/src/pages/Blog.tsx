@@ -192,7 +192,7 @@ const Blog = () => {
                               }}
                             />
                           </div>
-                        ))
+                        ))}
                         {post.images.length > 3 && (
                           <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
                             <span className="text-xs text-gray-500">+{post.images.length - 3}</span>
