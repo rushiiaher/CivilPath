@@ -93,26 +93,20 @@ export default async function handler(req, res) {
     }
 
     if (method === 'POST') {
-      const postData = { ...req.body };
+      const { title, excerpt, content, author, status, featured_image, images } = req.body;
       
-      // Set category_id to null if it's a number string
-      if (postData.category_id && !postData.category_id.includes('-')) {
-        postData.category_id = null;
-      }
-      
-      // Ensure images is properly formatted as array
-      if (!postData.images || !Array.isArray(postData.images)) {
-        postData.images = [];
-      }
-      
-      // Remove undefined/null fields that might cause issues
-      Object.keys(postData).forEach(key => {
-        if (postData[key] === undefined) {
-          delete postData[key];
-        }
-      });
-      
-      console.log('Inserting blog post:', postData);
+      const postData = {
+        title: title || 'Untitled',
+        slug: (title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now(),
+        excerpt: excerpt || '',
+        content: content || '',
+        author: author || 'Admin',
+        status: status || 'published',
+        featured_image: featured_image || null,
+        images: Array.isArray(images) ? images : [],
+        category_id: null,
+        read_time: 5
+      };
       
       const { data, error } = await supabase
         .from('blog_posts')
@@ -122,7 +116,7 @@ export default async function handler(req, res) {
 
       if (error) {
         console.error('Supabase error:', error);
-        throw error;
+        return res.status(500).json({ error: error.message });
       }
       return res.status(201).json(data);
     }
