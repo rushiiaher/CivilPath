@@ -41,6 +41,7 @@ export interface BlogPost {
   category_id: string;
   category_name?: string;
   featured_image?: string;
+  images?: string[];
   read_time: number;
   status: string;
   created_at: string;

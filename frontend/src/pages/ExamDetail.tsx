@@ -34,6 +34,7 @@ const ExamDetail = () => {
   const [stages, setStages] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   
   useEffect(() => {
     if (examId) {
@@ -328,6 +329,14 @@ const ExamDetail = () => {
       );
     }
 
+    // Filter resources based on search term
+    const filteredResources = stageResources.filter(resource => 
+      resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resource.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resource.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      resource.subject_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
       <div className="space-y-6">
         {/* Search bar */}
@@ -336,6 +345,8 @@ const ExamDetail = () => {
             <input
               type="text"
               placeholder="Search resources..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -346,9 +357,16 @@ const ExamDetail = () => {
           </div>
         </div>
         
+        {/* No results message */}
+        {searchTerm && filteredResources.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No resources found matching "{searchTerm}"</p>
+          </div>
+        )}
+        
         {/* Resources grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stageResources.map((resource) => (
+          {filteredResources.map((resource) => (
             <div key={resource.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-6">
               <h3 className="font-semibold text-lg text-gray-900 mb-2">{resource.title}</h3>
               <p className="text-gray-600 text-sm mb-4 line-clamp-2">{resource.description}</p>

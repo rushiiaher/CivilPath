@@ -203,9 +203,12 @@ const Blog = () => {
                       </div>
                     )}
                     
-                    <button className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center">
+                    <Link 
+                      to={`/blog/${post.slug}`}
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center"
+                    >
                       Read More <ArrowRight className="w-4 h-4 ml-1" />
-                    </button>
+                    </Link>
                   </div>
                 </article>
               ))}

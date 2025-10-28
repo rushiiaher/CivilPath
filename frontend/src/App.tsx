@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import ExamDetail from "./pages/ExamDetail";
 import Contact from "./pages/Contact";
 import Blog from "./pages/Blog";
+import BlogDetail from "./pages/BlogDetail";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -34,6 +35,7 @@ const App = () => (
             <Route index element={<Home />} />
             <Route path="exams/:examId" element={<ExamDetail />} />
             <Route path="blog" element={<Blog />} />
+            <Route path="blog/:slug" element={<BlogDetail />} />
             <Route path="contact" element={<Contact />} />
           </Route>
           {/* Admin Routes */}

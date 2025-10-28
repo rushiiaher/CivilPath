@@ -47,7 +47,9 @@ export default async function handler(req, res) {
         if (error) throw error;
         return res.json({
           ...data,
-          category_name: data.blog_categories?.name
+          category_name: data.blog_categories?.name,
+          images: data.images || [],
+          read_time: data.read_time || 5
         });
       }
 
@@ -75,7 +77,8 @@ export default async function handler(req, res) {
       const records = data.map(post => ({
         ...post,
         category_name: post.blog_categories?.name,
-        images: post.images || []
+        images: post.images || [],
+        read_time: post.read_time || 5
       }));
 
       return res.json({ records });
