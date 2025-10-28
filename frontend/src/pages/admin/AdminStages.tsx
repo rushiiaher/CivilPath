@@ -84,7 +84,10 @@ export default function AdminStages() {
     'Optional',
     'Interview',
     'Physical Test',
-    'Medical Test'
+    'Medical Test',
+    'Syllabus',
+    'Test Series',
+    'Current Affairs'
   ];
 
   return (
