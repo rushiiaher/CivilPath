@@ -244,7 +244,7 @@ export default function AdminBlog() {
               />
               <div className="text-xs text-gray-500 mb-2">
                 Maximum file size per image: 500KB. Supported formats: JPG, PNG, GIF, WebP
-              />
+              </div>
               {uploadedImages.length > 0 && (
                 <div className="grid grid-cols-4 gap-2">
                   {uploadedImages.map((image, index) => (
