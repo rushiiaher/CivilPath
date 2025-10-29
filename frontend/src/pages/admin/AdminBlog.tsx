@@ -94,7 +94,7 @@ export default function AdminBlog() {
 
   const fetchPosts = async () => {
     try {
-      const data = await apiRequest('blog');
+      const data = await fetch('/api/admin-all?endpoint=blog').then(r => r.json());
       setPosts(data.records || []);
       setError('');
     } catch (error) {
@@ -117,13 +117,15 @@ export default function AdminBlog() {
       };
       
       if (editingPost) {
-        await apiRequest(`blog&id=${editingPost.id}`, {
+        await fetch(`/api/admin-all?endpoint=blog&id=${editingPost.id}`, {
           method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(dataToSend)
         });
       } else {
-        await apiRequest('blog', {
+        await fetch('/api/admin-all?endpoint=blog', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(dataToSend)
         });
       }
@@ -402,7 +404,10 @@ export default function AdminBlog() {
                           onClick={async () => {
                             if (confirm('Are you sure you want to delete this post?')) {
                               try {
-                                await apiRequest(`blog&id=${post.id}`, { method: 'DELETE' });
+                                await fetch(`/api/admin-all?endpoint=blog&id=${post.id}`, {
+                                  method: 'DELETE',
+                                  headers: { 'Authorization': `Bearer ${token}` }
+                                });
                                 fetchPosts();
                               } catch (error) {
                                 console.error('Error deleting post:', error);

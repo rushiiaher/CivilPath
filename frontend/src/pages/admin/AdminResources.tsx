@@ -96,9 +96,9 @@ export default function AdminResources() {
   const fetchData = async () => {
     try {
       const [resourcesData, examsData, resourceTypesData] = await Promise.all([
-        apiRequest('resources'),
-        apiRequest('/exams'),
-        apiRequest('resource-types')
+        fetch('/api/admin-all?endpoint=resources').then(r => r.json()),
+        fetch('/api/exams').then(r => r.json()),
+        fetch('/api/admin-all?endpoint=resource-types').then(r => r.json())
       ]);
       
       setResources(resourcesData.records || []);
@@ -116,7 +116,7 @@ export default function AdminResources() {
   const fetchStages = async (examId: string) => {
     if (!examId) return;
     try {
-      const data = await apiRequest(`stages&exam_id=${examId}`);
+      const data = await fetch(`/api/admin-all?endpoint=stages&exam_id=${examId}`).then(r => r.json());
       setStages(data.records || []);
     } catch (error) {
       console.error('Error fetching stages:', error);
@@ -126,7 +126,7 @@ export default function AdminResources() {
   const fetchSubjects = async (stageId: string) => {
     if (!stageId) return;
     try {
-      const data = await apiRequest(`subjects&stage_id=${stageId}`);
+      const data = await fetch(`/api/admin-all?endpoint=subjects&stage_id=${stageId}`).then(r => r.json());
       setSubjects(data.records || []);
     } catch (error) {
       console.error('Error fetching subjects:', error);
@@ -144,13 +144,15 @@ export default function AdminResources() {
     
     try {
       if (editingResource) {
-        await apiRequest(`resources&id=${editingResource.id}`, {
+        await fetch(`/api/admin-all?endpoint=resources&id=${editingResource.id}`, {
           method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(formData)
         });
       } else {
-        await apiRequest('resources', {
+        await fetch('/api/admin-all?endpoint=resources', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(formData)
         });
       }
@@ -189,7 +191,10 @@ export default function AdminResources() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this resource?')) {
       try {
-        await apiRequest(`resources&id=${id}`, { method: 'DELETE' });
+        await fetch(`/api/admin-all?endpoint=resources&id=${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         fetchData();
       } catch (error) {
         console.error('Error deleting resource:', error);

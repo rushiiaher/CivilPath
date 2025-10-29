@@ -49,8 +49,8 @@ export default function AdminExamInfo() {
   const fetchData = async () => {
     try {
       const [examInfoData, examsData] = await Promise.all([
-        apiRequest('exam-info'),
-        apiRequest('/exams')
+        fetch('/api/admin-all?endpoint=exam-info').then(r => r.json()),
+        fetch('/api/exams').then(r => r.json())
       ]);
       setExamInfos(examInfoData.records || []);
       setExams(examsData.records || []);
@@ -77,13 +77,15 @@ export default function AdminExamInfo() {
     
     try {
       if (editingInfo) {
-        await apiRequest(`exam-info&id=${editingInfo.id}`, {
+        await fetch(`/api/admin-all?endpoint=exam-info&id=${editingInfo.id}`, {
           method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(formData)
         });
       } else {
-        await apiRequest('exam-info', {
+        await fetch('/api/admin-all?endpoint=exam-info', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(formData)
         });
       }
@@ -108,7 +110,10 @@ export default function AdminExamInfo() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this exam information?')) {
       try {
-        await apiRequest(`exam-info&id=${id}`, { method: 'DELETE' });
+        await fetch(`/api/admin-all?endpoint=exam-info&id=${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         fetchData();
       } catch (error) {
         console.error('Error deleting exam info:', error);
