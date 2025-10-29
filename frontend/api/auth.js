@@ -1,11 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+import connectDB from '../lib/mongodb.js';
+import User from '../models/User.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,51 +12,30 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  await connectDB();
+
   const { method } = req;
   const path = req.url.split('?')[0];
-
-  // Check environment variables
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY || !process.env.JWT_SECRET) {
-    return res.status(500).json({ 
-      error: 'Missing environment variables',
-      missing: {
-        supabaseUrl: !process.env.SUPABASE_URL,
-        supabaseKey: !process.env.SUPABASE_ANON_KEY,
-        jwtSecret: !process.env.JWT_SECRET
-      }
-    });
-  }
 
   try {
     if (method === 'POST' && (path === '/api/auth/create-admin' || (path === '/api/auth' && req.body.action === 'create-admin'))) {
       const hashedPassword = await bcrypt.hash('admin123', 10);
       
-      const { data, error } = await supabase
-        .from('admin_users')
-        .insert([{
-          username: 'admin',
-          password: hashedPassword,
-          email: 'admin@civilpath.com'
-        }])
-        .select();
+      const user = new User({
+        username: 'admin',
+        password: hashedPassword,
+        email: 'admin@civilpath.com'
+      });
 
-      if (error) {
-        return res.status(400).json({ error: error.message });
-      }
-
-      return res.json({ message: 'Admin user created', data });
+      const savedUser = await user.save();
+      return res.json({ message: 'Admin user created', data: savedUser });
     }
 
     if (method === 'POST' && (path === '/api/auth/login' || path === '/api/auth')) {
       const { username, password } = req.body;
 
-      const { data: admin, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('username', username)
-        .single();
-
-      if (error || !admin) {
+      const admin = await User.findOne({ username });
+      if (!admin) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
@@ -70,12 +45,12 @@ export default async function handler(req, res) {
       }
 
       const token = jwt.sign(
-        { id: admin.id, username: admin.username },
+        { id: admin._id, username: admin.username },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
 
-      return res.json({ token, user: { id: admin.id, username: admin.username } });
+      return res.json({ token, user: { id: admin._id, username: admin.username } });
     }
 
     return res.status(404).json({ error: 'Not found' });
