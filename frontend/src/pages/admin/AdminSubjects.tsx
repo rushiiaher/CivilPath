@@ -55,11 +55,27 @@ export default function AdminSubjects() {
 
   const fetchData = async () => {
     try {
-      const [subjectsData, examsData] = await Promise.all([
+      const [subjectsData, examsData, stagesData] = await Promise.all([
         fetch('/api/admin-all?endpoint=subjects').then(r => r.json()),
-        fetch('/api/exams').then(r => r.json())
+        fetch('/api/exams').then(r => r.json()),
+        fetch('/api/admin-all?endpoint=stages').then(r => r.json())
       ]);
-      setSubjects(subjectsData.records || []);
+      
+      const subjectsWithNames = (subjectsData.records || []).map(subject => {
+        const exam = (examsData.records || []).find(e => 
+          e.id === subject.exam_id || e.slug === subject.exam_id || e._id === subject.exam_id || e.name === subject.exam_id
+        );
+        const stage = (stagesData.records || []).find(s => 
+          s.id === subject.stage_id || s._id === subject.stage_id
+        );
+        return {
+          ...subject,
+          exam_name: exam ? exam.name : subject.exam_id,
+          stage_name: stage ? stage.name : subject.stage_id
+        };
+      });
+      
+      setSubjects(subjectsWithNames);
       setExams(examsData.records || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -87,7 +103,7 @@ export default function AdminSubjects() {
       };
       
       if (editingSubject) {
-        await fetch(`/api/admin-all?endpoint=subjects&id=${editingSubject.id}`, {
+        await fetch(`/api/admin-all?endpoint=subjects&id=${editingSubject._id || editingSubject.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(dataToSend)
@@ -269,7 +285,7 @@ export default function AdminSubjects() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDelete(subject.id)}
+                        onClick={() => handleDelete(subject._id || subject.id)}
                         className="text-red-500 hover:underline"
                       >
                         Delete
