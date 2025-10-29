@@ -51,6 +51,8 @@ const ExamDetail = () => {
       if (foundExam) {
         setExam(foundExam);
         
+        console.log('Loading data for exam:', foundExam.id, foundExam.name);
+        
         // Load resources and new structure data
         const [resourcesResponse, examInfoResponse, stagesResponse, subjectsResponse] = await Promise.all([
           fetch(`/api/admin-all?endpoint=resources&exam_id=${foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
@@ -58,6 +60,8 @@ const ExamDetail = () => {
           fetch(`/api/admin-all?endpoint=stages&exam_id=${foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
           fetch(`/api/admin-all?endpoint=subjects`).then(r => r.json()).catch(() => ({ records: [] }))
         ]);
+        
+        console.log('API Response for stages:', stagesResponse);
         
         console.log('Resources loaded:', resourcesResponse.records);
         setResources(resourcesResponse.records || []);

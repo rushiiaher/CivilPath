@@ -116,14 +116,19 @@ async function handleStages(req, res, Stage) {
 
   if (method === 'GET') {
     let stageQuery = {};
-    if (exam_id) stageQuery.exam_id = exam_id;
+    if (exam_id && exam_id !== 'undefined') {
+      stageQuery.exam_id = exam_id;
+    }
     const stages = await Stage.find(stageQuery).sort({ createdAt: -1 });
+    console.log('Stages query:', stageQuery, 'Found stages:', stages.length);
     return res.json({ records: stages });
   }
 
   if (method === 'POST') {
+    console.log('Creating stage with data:', req.body);
     const stage = new Stage(req.body);
     const savedStage = await stage.save();
+    console.log('Saved stage:', savedStage);
     return res.status(201).json(savedStage);
   }
 
