@@ -83,7 +83,7 @@ export default function AdminStages() {
       };
       
       if (editingStage) {
-        await fetch(`/api/admin-all?endpoint=stages&id=${editingStage.id}`, {
+        await fetch(`/api/admin-all?endpoint=stages&id=${editingStage._id || editingStage.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(dataToSend)
@@ -258,7 +258,7 @@ export default function AdminStages() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDelete(stage.id)}
+                        onClick={() => handleDelete(stage._id || stage.id)}
                         className="text-red-500 hover:underline"
                       >
                         Delete
