@@ -63,7 +63,7 @@ export default function AdminSubjects() {
       
       const subjectsWithNames = (subjectsData.records || []).map(subject => {
         const exam = (examsData.records || []).find(e => 
-          e.id === subject.exam_id || e.slug === subject.exam_id || e._id === subject.exam_id || e.name === subject.exam_id
+          (e._id || e.id) === subject.exam_id || e.slug === subject.exam_id || e.name === subject.exam_id
         );
         const stage = (stagesData.records || []).find(s => 
           s.id === subject.stage_id || s._id === subject.stage_id
@@ -190,7 +190,7 @@ export default function AdminSubjects() {
                 >
                   <option value="">Select Exam</option>
                   {exams.map(exam => (
-                    <option key={exam.id} value={exam.id}>{exam.name}</option>
+                    <option key={exam._id || exam.id} value={exam._id || exam.id}>{exam.name}</option>
                   ))}
                 </select>
               </div>
