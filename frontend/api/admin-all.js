@@ -100,6 +100,8 @@ export default async function handler(req, res) {
       return handleResources(req, res, Resource);
     } else if (endpoint === 'upload') {
       return handleUpload(req, res);
+    } else if (endpoint === 'exam-info') {
+      return handleExamInfo(req, res);
     }
 
     return res.status(404).json({ error: 'Endpoint not found' });
@@ -301,4 +303,26 @@ async function handleUpload(req, res) {
     fileName,
     fileSize
   });
+}
+
+async function handleExamInfo(req, res) {
+  const { method } = req;
+
+  if (method === 'GET') {
+    return res.json({ records: [] });
+  }
+
+  if (method === 'POST') {
+    return res.status(201).json({ message: 'Exam info created' });
+  }
+
+  if (method === 'PUT') {
+    return res.json({ message: 'Exam info updated' });
+  }
+
+  if (method === 'DELETE') {
+    return res.json({ message: 'Exam info deleted' });
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
 }
