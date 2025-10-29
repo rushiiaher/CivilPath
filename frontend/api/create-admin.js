@@ -1,34 +1,52 @@
-import bcrypt from 'bcryptjs';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
-
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
   try {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const bcrypt = await import('bcryptjs');
+    const mongoose = await import('mongoose');
     
-    const { data, error } = await supabase
-      .from('admin_users')
-      .insert([{
-        username: 'admin',
-        password: hashedPassword,
-        email: 'admin@civilpath.com'
-      }])
-      .select();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({ error: 'MONGODB_URI not configured' });
     }
 
-    res.json({ message: 'Admin user created', data });
+    // Connect to MongoDB
+    if (mongoose.default.connection.readyState !== 1) {
+      await mongoose.default.connect(process.env.MONGODB_URI);
+    }
+
+    // Define User schema inline
+    const userSchema = new mongoose.default.Schema({
+      username: { type: String, required: true, unique: true },
+      password: { type: String, required: true },
+      email: { type: String, required: true }
+    }, { timestamps: true });
+
+    const User = mongoose.default.models.User || mongoose.default.model('User', userSchema);
+
+    const hashedPassword = await bcrypt.default.hash('admin123', 10);
+    
+    const user = new User({
+      username: 'admin',
+      password: hashedPassword,
+      email: 'admin@civilpath.com'
+    });
+
+    const savedUser = await user.save();
+    return res.json({ 
+      message: 'Admin user created successfully',
+      user: { id: savedUser._id, username: savedUser.username }
+    });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ 
+      error: error.message,
+      stack: error.stack 
+    });
   }
 }
