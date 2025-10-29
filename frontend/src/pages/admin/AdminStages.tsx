@@ -28,7 +28,7 @@ export default function AdminStages() {
   const token = localStorage.getItem('adminToken');
 
   const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-    const response = await fetch(`/api${endpoint}`, {
+    const response = await fetch(`/api/admin-all?endpoint=${endpoint.replace('/', '')}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export default function AdminStages() {
   const fetchData = async () => {
     try {
       const [stagesData, examsData] = await Promise.all([
-        apiRequest('/admin?type=stages'),
+        apiRequest('stages'),
         apiRequest('/exams')
       ]);
       setStages(stagesData.records || []);
@@ -66,7 +66,7 @@ export default function AdminStages() {
         slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       };
       
-      await apiRequest('/admin?type=stages', {
+      await apiRequest('stages', {
         method: 'POST',
         body: JSON.stringify(dataToSend)
       });

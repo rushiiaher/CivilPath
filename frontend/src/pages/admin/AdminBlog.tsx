@@ -41,7 +41,7 @@ export default function AdminBlog() {
       }
       
       const fileName = `${Date.now()}-${file.name}`;
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/admin-all?endpoint=upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -94,7 +94,7 @@ export default function AdminBlog() {
 
   const fetchPosts = async () => {
     try {
-      const data = await apiRequest('/blog');
+      const data = await apiRequest('blog');
       setPosts(data.records || []);
       setError('');
     } catch (error) {
@@ -117,12 +117,12 @@ export default function AdminBlog() {
       };
       
       if (editingPost) {
-        await apiRequest(`/blog?id=${editingPost.id}`, {
+        await apiRequest(`blog&id=${editingPost.id}`, {
           method: 'PUT',
           body: JSON.stringify(dataToSend)
         });
       } else {
-        await apiRequest('/blog', {
+        await apiRequest('blog', {
           method: 'POST',
           body: JSON.stringify(dataToSend)
         });
@@ -402,7 +402,7 @@ export default function AdminBlog() {
                           onClick={async () => {
                             if (confirm('Are you sure you want to delete this post?')) {
                               try {
-                                await apiRequest(`/blog?id=${post.id}`, { method: 'DELETE' });
+                                await apiRequest(`blog&id=${post.id}`, { method: 'DELETE' });
                                 fetchPosts();
                               } catch (error) {
                                 console.error('Error deleting post:', error);
