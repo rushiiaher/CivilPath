@@ -297,9 +297,15 @@ export default function AdminResources() {
                   required
                 >
                   <option value="">Select Type</option>
-                  {resourceTypes.map(type => (
-                    <option key={type.id} value={type.id}>{type.name}</option>
-                  ))}
+                  <option value="pdf">📄 PDF</option>
+                  <option value="video">🎥 Video</option>
+                  <option value="live">🔴 Live Session</option>
+                  <option value="notes">📝 Notes</option>
+                  <option value="test">📊 Test Series</option>
+                  <option value="book">📚 Book</option>
+                  <option value="audio">🎧 Audio</option>
+                  <option value="image">🖼️ Image</option>
+                  <option value="other">📁 Other</option>
                 </select>
               </div>
             </div>
