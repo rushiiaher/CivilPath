@@ -182,7 +182,7 @@ async function handleResourceTypes(req, res, ResourceType) {
 
 async function handleSubjects(req, res, Subject) {
   const { method, query } = req;
-  const { stage_id } = query;
+  const { stage_id, id } = query;
 
   if (method === 'GET') {
     let subjectQuery = {};
@@ -195,6 +195,18 @@ async function handleSubjects(req, res, Subject) {
     const subject = new Subject(req.body);
     const savedSubject = await subject.save();
     return res.status(201).json(savedSubject);
+  }
+
+  if (method === 'PUT') {
+    const updatedSubject = await Subject.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedSubject) return res.status(404).json({ error: 'Subject not found' });
+    return res.json(updatedSubject);
+  }
+
+  if (method === 'DELETE') {
+    const deletedSubject = await Subject.findByIdAndDelete(id);
+    if (!deletedSubject) return res.status(404).json({ error: 'Subject not found' });
+    return res.json({ message: 'Subject deleted successfully' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
@@ -320,23 +332,50 @@ async function handleUpload(req, res) {
 }
 
 async function handleExamInfo(req, res) {
-  const { method } = req;
+  const { method, query } = req;
+  const { exam_id, id } = query;
 
-  if (method === 'GET') {
-    return res.json({ records: [] });
+  try {
+    const mongoose = await import('mongoose');
+    
+    const examInfoSchema = new mongoose.default.Schema({
+      exam_id: { type: String, required: true },
+      section_type: { type: String, required: true },
+      title: { type: String, required: true },
+      content: { type: String, required: true }
+    }, { timestamps: true });
+
+    const ExamInfo = mongoose.default.models.ExamInfo || mongoose.default.model('ExamInfo', examInfoSchema);
+
+    if (method === 'GET') {
+      let query = {};
+      if (exam_id && exam_id !== 'undefined') {
+        query.exam_id = exam_id;
+      }
+      const examInfos = await ExamInfo.find(query).sort({ createdAt: -1 });
+      return res.json({ records: examInfos });
+    }
+
+    if (method === 'POST') {
+      const examInfo = new ExamInfo(req.body);
+      const savedExamInfo = await examInfo.save();
+      return res.status(201).json(savedExamInfo);
+    }
+
+    if (method === 'PUT') {
+      const updatedExamInfo = await ExamInfo.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updatedExamInfo) return res.status(404).json({ error: 'Exam info not found' });
+      return res.json(updatedExamInfo);
+    }
+
+    if (method === 'DELETE') {
+      const deletedExamInfo = await ExamInfo.findByIdAndDelete(id);
+      if (!deletedExamInfo) return res.status(404).json({ error: 'Exam info not found' });
+      return res.json({ message: 'Exam info deleted successfully' });
+    }
+
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
-
-  if (method === 'POST') {
-    return res.status(201).json({ message: 'Exam info created' });
-  }
-
-  if (method === 'PUT') {
-    return res.json({ message: 'Exam info updated' });
-  }
-
-  if (method === 'DELETE') {
-    return res.json({ message: 'Exam info deleted' });
-  }
-
-  return res.status(405).json({ error: 'Method not allowed' });
 }

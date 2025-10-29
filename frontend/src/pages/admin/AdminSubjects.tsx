@@ -56,8 +56,8 @@ export default function AdminSubjects() {
   const fetchData = async () => {
     try {
       const [subjectsData, examsData] = await Promise.all([
-        apiRequest('/admin?type=subjects'),
-        apiRequest('/exams')
+        fetch('/api/admin-all?endpoint=subjects').then(r => r.json()),
+        fetch('/api/exams').then(r => r.json())
       ]);
       setSubjects(subjectsData.records || []);
       setExams(examsData.records || []);
@@ -71,7 +71,7 @@ export default function AdminSubjects() {
   const fetchStages = async (examId: string) => {
     if (!examId) return;
     try {
-      const data = await apiRequest(`/admin?type=stages&exam_id=${examId}`);
+      const data = await fetch(`/api/admin-all?endpoint=stages&exam_id=${examId}`).then(r => r.json());
       setStages(data.records || []);
     } catch (error) {
       console.error('Error fetching stages:', error);
@@ -87,13 +87,15 @@ export default function AdminSubjects() {
       };
       
       if (editingSubject) {
-        await apiRequest(`/admin?type=subjects&id=${editingSubject.id}`, {
+        await fetch(`/api/admin-all?endpoint=subjects&id=${editingSubject.id}`, {
           method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(dataToSend)
         });
       } else {
-        await apiRequest('/admin?type=subjects', {
+        await fetch('/api/admin-all?endpoint=subjects', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(dataToSend)
         });
       }
@@ -124,7 +126,10 @@ export default function AdminSubjects() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this subject?')) {
       try {
-        await apiRequest(`/admin?type=subjects&id=${id}`, { method: 'DELETE' });
+        await fetch(`/api/admin-all?endpoint=subjects&id=${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         fetchData();
       } catch (error) {
         console.error('Error deleting subject:', error);

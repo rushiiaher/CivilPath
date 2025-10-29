@@ -53,7 +53,7 @@ export default function AdminStages() {
       ]);
       
       const stagesWithExamNames = (stagesData.records || []).map(stage => {
-        const exam = (examsData.records || []).find(e => e.id === stage.exam_id);
+        const exam = (examsData.records || []).find(e => e.id === stage.exam_id || e.slug === stage.exam_id);
         return {
           ...stage,
           exam_name: exam ? exam.name : 'Unknown Exam'
