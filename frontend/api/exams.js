@@ -1,20 +1,3 @@
-import jwt from 'jsonwebtoken';
-import connectDB from '../lib/mongodb.js';
-import Exam from '../models/Exam.js';
-
-const authenticateToken = (req) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (!token) return null;
-  
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET);
-  } catch {
-    return null;
-  }
-};
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -24,11 +7,31 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  await connectDB();
-
-  const { method, query } = req;
-
   try {
+    const mongoose = await import('mongoose');
+    
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({ error: 'MONGODB_URI not configured' });
+    }
+
+    // Connect to MongoDB
+    if (mongoose.default.connection.readyState !== 1) {
+      await mongoose.default.connect(process.env.MONGODB_URI);
+    }
+
+    // Define Exam schema inline
+    const examSchema = new mongoose.default.Schema({
+      name: { type: String, required: true },
+      slug: { type: String, required: true },
+      description: { type: String },
+      category: { type: String },
+      status: { type: String, default: 'active' }
+    }, { timestamps: true });
+
+    const Exam = mongoose.default.models.Exam || mongoose.default.model('Exam', examSchema);
+
+    const { method, query } = req;
+
     if (method === 'GET') {
       const { id } = query;
       
@@ -44,11 +47,6 @@ export default async function handler(req, res) {
       return res.json({ records: exams });
     }
 
-    const user = authenticateToken(req);
-    if (!user) {
-      return res.status(401).json({ error: 'Access token required' });
-    }
-
     if (method === 'POST') {
       const exam = new Exam(req.body);
       const savedExam = await exam.save();
@@ -58,18 +56,12 @@ export default async function handler(req, res) {
     if (method === 'PUT') {
       const { id } = query;
       const updatedExam = await Exam.findByIdAndUpdate(id, req.body, { new: true });
-      if (!updatedExam) {
-        return res.status(404).json({ error: 'Exam not found' });
-      }
       return res.json(updatedExam);
     }
 
     if (method === 'DELETE') {
       const { id } = query;
-      const deletedExam = await Exam.findByIdAndDelete(id);
-      if (!deletedExam) {
-        return res.status(404).json({ error: 'Exam not found' });
-      }
+      await Exam.findByIdAndDelete(id);
       return res.json({ message: 'Exam deleted successfully' });
     }
 
