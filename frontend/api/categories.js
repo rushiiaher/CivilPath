@@ -1,10 +1,7 @@
 import jwt from 'jsonwebtoken';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+import connectDB from '../lib/mongodb.js';
+import ResourceCategory from '../models/ResourceCategory.js';
+import Exam from '../models/Exam.js';
 
 const authenticateToken = (req) => {
   const authHeader = req.headers['authorization'];
@@ -28,6 +25,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  await connectDB();
+
   const { method, query } = req;
 
   try {
@@ -35,40 +34,31 @@ export default async function handler(req, res) {
       const { id, exam_id } = query;
       
       if (id) {
-        const { data, error } = await supabase
-          .from('resource_categories')
-          .select(`
-            *,
-            exams(name)
-          `)
-          .eq('id', id)
-          .single();
+        const category = await ResourceCategory.findById(id)
+          .populate('exam_id', 'name');
         
-        if (error) throw error;
+        if (!category) {
+          return res.status(404).json({ error: 'Category not found' });
+        }
         return res.json({
-          ...data,
-          exam_name: data.exams?.name
+          ...category.toObject(),
+          exam_name: category.exam_id?.name
         });
       }
 
-      let queryBuilder = supabase
-        .from('resource_categories')
-        .select(`
-          *,
-          exams(name)
-        `)
-        .order('created_at', { ascending: false });
+      let queryBuilder = ResourceCategory.find({ status: 'active' })
+        .populate('exam_id', 'name')
+        .sort({ createdAt: -1 });
 
       if (exam_id) {
-        queryBuilder = queryBuilder.eq('exam_id', exam_id);
+        queryBuilder = queryBuilder.where('exam_id').equals(exam_id);
       }
 
-      const { data, error } = await queryBuilder;
-      if (error) throw error;
+      const categories = await queryBuilder;
       
-      const records = data.map(category => ({
-        ...category,
-        exam_name: category.exams?.name
+      const records = categories.map(category => ({
+        ...category.toObject(),
+        exam_name: category.exam_id?.name
       }));
 
       return res.json({ records });
@@ -80,37 +70,26 @@ export default async function handler(req, res) {
     }
 
     if (method === 'POST') {
-      const { data, error } = await supabase
-        .from('resource_categories')
-        .insert([req.body])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return res.status(201).json(data);
+      const category = new ResourceCategory(req.body);
+      const savedCategory = await category.save();
+      return res.status(201).json(savedCategory);
     }
 
     if (method === 'PUT') {
       const { id } = query;
-      const { data, error } = await supabase
-        .from('resource_categories')
-        .update(req.body)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return res.json(data);
+      const updatedCategory = await ResourceCategory.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updatedCategory) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      return res.json(updatedCategory);
     }
 
     if (method === 'DELETE') {
       const { id } = query;
-      const { error } = await supabase
-        .from('resource_categories')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      const deletedCategory = await ResourceCategory.findByIdAndDelete(id);
+      if (!deletedCategory) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
       return res.json({ message: 'Resource category deleted successfully' });
     }
 

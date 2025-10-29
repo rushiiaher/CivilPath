@@ -1,10 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+import connectDB from '../lib/mongodb.js';
+import BlogPost from '../models/BlogPost.js';
 
 const authenticateToken = (req) => {
   const authHeader = req.headers['authorization'];
@@ -28,6 +24,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  await connectDB();
+
   const { method, query } = req;
 
   try {
@@ -35,54 +33,29 @@ export default async function handler(req, res) {
       const { id, category_id } = query;
       
       if (id) {
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .select(`
-            *,
-            blog_categories(name)
-          `)
-          .eq('id', id)
-          .single();
-        
-        if (error) throw error;
+        const post = await BlogPost.findById(id);
+        if (!post) {
+          return res.status(404).json({ error: 'Blog post not found' });
+        }
         return res.json({
-          ...data,
-          category_name: data.blog_categories?.name,
-          images: data.images || [],
-          read_time: data.read_time || 5
+          ...post.toObject(),
+          category_name: 'General' // Default category name
         });
       }
 
-      let queryBuilder = supabase
-        .from('blog_posts')
-        .select(`
-          *,
-          blog_categories(name)
-        `)
-        .order('created_at', { ascending: false });
-
-      // Only show published posts for non-authenticated users
-      const user = authenticateToken(req);
-      if (!user) {
-        queryBuilder = queryBuilder.eq('status', 'published');
-      }
+      let queryBuilder = BlogPost.find({ status: 'published' })
+        .sort({ createdAt: -1 });
 
       if (category_id) {
-        queryBuilder = queryBuilder.eq('category_id', category_id);
+        queryBuilder = queryBuilder.where('category_id').equals(category_id);
       }
 
-      const { data, error } = await queryBuilder;
-      if (error) throw error;
+      const posts = await queryBuilder;
       
-      const records = data.map(post => {
-        console.log('Blog post images:', post.images);
-        return {
-          ...post,
-          category_name: post.blog_categories?.name,
-          images: post.images || [],
-          read_time: post.read_time || 5
-        };
-      });
+      const records = posts.map(post => ({
+        ...post.toObject(),
+        category_name: 'General' // Default category name
+      }));
 
       return res.json({ records });
     }
@@ -93,67 +66,26 @@ export default async function handler(req, res) {
     }
 
     if (method === 'POST') {
-      const { title, excerpt, content, author, status, featured_image, images } = req.body;
-      
-      const postData = {
-        title: title || 'Untitled',
-        slug: (title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now(),
-        excerpt: excerpt || '',
-        content: content || '',
-        author: author || 'Admin',
-        status: status || 'published',
-        featured_image: featured_image || null,
-        images: Array.isArray(images) ? images : [],
-        category_id: null,
-        read_time: 5
-      };
-      
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .insert([postData])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        return res.status(500).json({ error: error.message });
-      }
-      return res.status(201).json(data);
+      const post = new BlogPost(req.body);
+      const savedPost = await post.save();
+      return res.status(201).json(savedPost);
     }
 
     if (method === 'PUT') {
       const { id } = query;
-      const postData = { ...req.body };
-      
-      // Set category_id to null if it's a number string
-      if (postData.category_id && !postData.category_id.includes('-')) {
-        postData.category_id = null;
+      const updatedPost = await BlogPost.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updatedPost) {
+        return res.status(404).json({ error: 'Blog post not found' });
       }
-      
-      // Ensure images is properly formatted as array
-      if (!postData.images || !Array.isArray(postData.images)) {
-        postData.images = [];
-      }
-      
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .update(postData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return res.json(data);
+      return res.json(updatedPost);
     }
 
     if (method === 'DELETE') {
       const { id } = query;
-      const { error } = await supabase
-        .from('blog_posts')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      const deletedPost = await BlogPost.findByIdAndDelete(id);
+      if (!deletedPost) {
+        return res.status(404).json({ error: 'Blog post not found' });
+      }
       return res.json({ message: 'Blog post deleted successfully' });
     }
 

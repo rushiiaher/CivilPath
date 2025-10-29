@@ -1,10 +1,8 @@
 import jwt from 'jsonwebtoken';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+import connectDB from '../lib/mongodb.js';
+import Resource from '../models/Resource.js';
+import Exam from '../models/Exam.js';
+import ResourceCategory from '../models/ResourceCategory.js';
 
 const authenticateToken = (req) => {
   const authHeader = req.headers['authorization'];
@@ -28,6 +26,8 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  await connectDB();
+
   const { method, query } = req;
 
   try {
@@ -35,46 +35,31 @@ export default async function handler(req, res) {
       const { id, exam_id } = query;
       
       if (id) {
-        const { data, error } = await supabase
-          .from('resources')
-          .select(`
-            *,
-            exams(name),
-            exam_stages(name),
-            subjects(name),
-            resource_types(name)
-          `)
-          .eq('id', id)
-          .single();
+        const resource = await Resource.findById(id)
+          .populate('exam_id', 'name')
+          .populate('category_id', 'name');
         
-        if (error) throw error;
-        return res.json(data);
+        if (!resource) {
+          return res.status(404).json({ error: 'Resource not found' });
+        }
+        return res.json(resource);
       }
 
-      let queryBuilder = supabase
-        .from('resources')
-        .select(`
-          *,
-          exams(name),
-          exam_stages(name),
-          subjects(name),
-          resource_types(name)
-        `)
-        .order('created_at', { ascending: false });
+      let queryBuilder = Resource.find()
+        .populate('exam_id', 'name')
+        .populate('category_id', 'name')
+        .sort({ createdAt: -1 });
 
       if (exam_id) {
-        queryBuilder = queryBuilder.eq('exam_id', exam_id);
+        queryBuilder = queryBuilder.where('exam_id').equals(exam_id);
       }
 
-      const { data, error } = await queryBuilder;
-      if (error) throw error;
+      const resources = await queryBuilder;
       
-      const records = data.map(resource => ({
-        ...resource,
-        exam_name: resource.exams?.name,
-        stage_name: resource.exam_stages?.name,
-        subject_name: resource.subjects?.name,
-        resource_type_name: resource.resource_types?.name
+      const records = resources.map(resource => ({
+        ...resource.toObject(),
+        exam_name: resource.exam_id?.name,
+        category_name: resource.category_id?.name
       }));
 
       return res.json({ records });
@@ -86,37 +71,26 @@ export default async function handler(req, res) {
     }
 
     if (method === 'POST') {
-      const { data, error } = await supabase
-        .from('resources')
-        .insert([req.body])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return res.status(201).json(data);
+      const resource = new Resource(req.body);
+      const savedResource = await resource.save();
+      return res.status(201).json(savedResource);
     }
 
     if (method === 'PUT') {
       const { id } = query;
-      const { data, error } = await supabase
-        .from('resources')
-        .update(req.body)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return res.json(data);
+      const updatedResource = await Resource.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updatedResource) {
+        return res.status(404).json({ error: 'Resource not found' });
+      }
+      return res.json(updatedResource);
     }
 
     if (method === 'DELETE') {
       const { id } = query;
-      const { error } = await supabase
-        .from('resources')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      const deletedResource = await Resource.findByIdAndDelete(id);
+      if (!deletedResource) {
+        return res.status(404).json({ error: 'Resource not found' });
+      }
       return res.json({ message: 'Resource deleted successfully' });
     }
 
