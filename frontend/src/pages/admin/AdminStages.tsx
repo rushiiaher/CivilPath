@@ -52,19 +52,16 @@ export default function AdminStages() {
         fetch('/api/exams').then(r => r.json())
       ]);
       
-      console.log('Stages data:', stagesData.records);
-      console.log('Exams data:', examsData.records);
-      
       const stagesWithExamNames = (stagesData.records || []).map(stage => {
-        console.log('Looking for exam with ID:', stage.exam_id);
-        const exam = (examsData.records || []).find(e => {
-          console.log('Checking exam:', e.id, e.slug, e.name);
-          return e.id === stage.exam_id || e.slug === stage.exam_id || e._id === stage.exam_id;
-        });
-        console.log('Found exam:', exam);
+        const exam = (examsData.records || []).find(e => 
+          e.id === stage.exam_id || 
+          e.slug === stage.exam_id || 
+          e._id === stage.exam_id ||
+          e.name === stage.exam_id
+        );
         return {
           ...stage,
-          exam_name: exam ? exam.name : `Unknown Exam (${stage.exam_id})`
+          exam_name: exam ? exam.name : stage.exam_id
         };
       });
       
