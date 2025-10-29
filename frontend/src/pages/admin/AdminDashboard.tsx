@@ -41,10 +41,10 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const [exams, resources, blogPosts, stages] = await Promise.all([
-        apiRequest('/exams'),
-        apiRequest('/resources'),
-        apiRequest('/blog'),
-        apiRequest('/admin?type=stages')
+        fetch('/api/exams').then(r => r.json()).catch(() => ({ records: [] })),
+        fetch('/api/admin-all?endpoint=resources').then(r => r.json()).catch(() => ({ records: [] })),
+        fetch('/api/admin-all?endpoint=blog').then(r => r.json()).catch(() => ({ records: [] })),
+        fetch('/api/admin-all?endpoint=stages').then(r => r.json()).catch(() => ({ records: [] }))
       ]);
 
       setStats({
