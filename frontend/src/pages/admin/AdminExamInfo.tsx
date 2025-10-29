@@ -52,7 +52,21 @@ export default function AdminExamInfo() {
         fetch('/api/admin-all?endpoint=exam-info').then(r => r.json()),
         fetch('/api/exams').then(r => r.json())
       ]);
-      setExamInfos(examInfoData.records || []);
+      
+      const examInfosWithExamNames = (examInfoData.records || []).map(info => {
+        const exam = (examsData.records || []).find(e => 
+          e.id === info.exam_id || 
+          e.slug === info.exam_id || 
+          e._id === info.exam_id ||
+          e.name === info.exam_id
+        );
+        return {
+          ...info,
+          exam_name: exam ? exam.name : info.exam_id
+        };
+      });
+      
+      setExamInfos(examInfosWithExamNames);
       setExams(examsData.records || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -77,7 +91,7 @@ export default function AdminExamInfo() {
     
     try {
       if (editingInfo) {
-        await fetch(`/api/admin-all?endpoint=exam-info&id=${editingInfo.id}`, {
+        await fetch(`/api/admin-all?endpoint=exam-info&id=${editingInfo._id || editingInfo.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(formData)
@@ -259,7 +273,7 @@ export default function AdminExamInfo() {
                         Edit
                       </button>
                       <button 
-                        onClick={() => handleDelete(info.id)}
+                        onClick={() => handleDelete(info._id || info.id)}
                         className="text-red-500 hover:underline"
                       >
                         Delete
