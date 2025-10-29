@@ -95,13 +95,29 @@ export default function AdminResources() {
 
   const fetchData = async () => {
     try {
-      const [resourcesData, examsData, resourceTypesData] = await Promise.all([
+      const [resourcesData, examsData, resourceTypesData, stagesData] = await Promise.all([
         fetch('/api/admin-all?endpoint=resources').then(r => r.json()),
         fetch('/api/exams').then(r => r.json()),
-        fetch('/api/admin-all?endpoint=resource-types').then(r => r.json())
+        fetch('/api/admin-all?endpoint=resource-types').then(r => r.json()),
+        fetch('/api/admin-all?endpoint=stages').then(r => r.json())
       ]);
       
-      setResources(resourcesData.records || []);
+      const resourcesWithNames = (resourcesData.records || []).map(resource => {
+        const exam = (examsData.records || []).find(e => 
+          (e._id || e.id) === resource.exam_id || e.slug === resource.exam_id || e.name === resource.exam_id
+        );
+        const stage = (stagesData.records || []).find(s => 
+          (s._id || s.id) === resource.stage_id
+        );
+        return {
+          ...resource,
+          exam_name: exam ? exam.name : resource.exam_id,
+          stage_name: stage ? stage.name : resource.stage_id,
+          resource_type_name: resource.resource_type_id
+        };
+      });
+      
+      setResources(resourcesWithNames);
       setExams(examsData.records || []);
       setResourceTypes(resourceTypesData.records || []);
       setError('');
@@ -144,7 +160,7 @@ export default function AdminResources() {
     
     try {
       if (editingResource) {
-        await fetch(`/api/admin-all?endpoint=resources&id=${editingResource.id}`, {
+        await fetch(`/api/admin-all?endpoint=resources&id=${editingResource._id || editingResource.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(formData)
@@ -249,7 +265,7 @@ export default function AdminResources() {
                 >
                   <option value="">Select Exam</option>
                   {exams.map(exam => (
-                    <option key={exam.id} value={exam.id}>{exam.name}</option>
+                    <option key={exam._id || exam.id} value={exam._id || exam.id}>{exam.name}</option>
                   ))}
                 </select>
               </div>
