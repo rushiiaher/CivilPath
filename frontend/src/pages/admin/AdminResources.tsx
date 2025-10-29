@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from './AdminLayout';
+import { convertToDirectDownloadLink, isValidGoogleDriveUrl } from '../../utils/googleDrive';
 
 interface Exam {
   id: string;
@@ -134,6 +135,13 @@ export default function AdminResources() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate Google Drive URL
+    if (formData.external_url && !isValidGoogleDriveUrl(formData.external_url)) {
+      alert('Please enter a valid Google Drive URL');
+      return;
+    }
+    
     try {
       if (editingResource) {
         await apiRequest(`/resources?id=${editingResource.id}`, {
@@ -334,14 +342,18 @@ export default function AdminResources() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold mb-2">External URL (if applicable)</label>
+              <label className="block text-sm font-bold mb-2">Google Drive URL *</label>
               <input
                 type="url"
                 value={formData.external_url}
                 onChange={(e) => setFormData({...formData, external_url: e.target.value})}
                 className="w-full px-3 py-2 border rounded"
-                placeholder="https://example.com/resource"
+                placeholder="https://drive.google.com/file/d/your-file-id/view"
+                required
               />
+              <div className="text-xs text-gray-500 mt-1">
+                Paste the Google Drive shareable link here. Make sure the file is set to "Anyone with the link can view"
+              </div>
             </div>
 
             <div>
@@ -377,13 +389,14 @@ export default function AdminResources() {
                 <th className="px-4 py-2 text-left">Stage</th>
                 <th className="px-4 py-2 text-left">Type</th>
                 <th className="px-4 py-2 text-left">Author</th>
+                <th className="px-4 py-2 text-left">Year</th>
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {resources.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                     No resources found
                   </td>
                 </tr>
@@ -400,19 +413,38 @@ export default function AdminResources() {
                     <td className="px-4 py-2">{resource.stage_name}</td>
                     <td className="px-4 py-2">{resource.resource_type_name}</td>
                     <td className="px-4 py-2">{resource.author}</td>
+                    <td className="px-4 py-2">{resource.year}</td>
                     <td className="px-4 py-2">
-                      <button 
-                        onClick={() => handleEdit(resource)}
-                        className="text-blue-500 mr-2 hover:underline"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(resource.id)}
-                        className="text-red-500 hover:underline"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex gap-2">
+                        {resource.external_url && (
+                          <a
+                            href={convertToDirectDownloadLink(resource.external_url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                            onClick={() => {
+                              // Track download count
+                              fetch(`/api/resources?id=${resource.id}&action=download`, {
+                                method: 'POST'
+                              }).catch(console.error);
+                            }}
+                          >
+                            Download
+                          </a>
+                        )}
+                        <button 
+                          onClick={() => handleEdit(resource)}
+                          className="text-blue-500 hover:underline text-sm"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(resource.id)}
+                          className="text-red-500 hover:underline text-sm"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

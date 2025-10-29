@@ -35,6 +35,11 @@ export default function AdminBlog() {
 
   const uploadImage = async (file: File): Promise<string> => {
     try {
+      // Validate file size before upload
+      if (file.size > 512000) {
+        throw new Error('File size exceeds 500KB limit');
+      }
+      
       const fileName = `${Date.now()}-${file.name}`;
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -53,7 +58,7 @@ export default function AdminBlog() {
       return result.url || URL.createObjectURL(file);
     } catch (error) {
       console.error('Upload error:', error);
-      return URL.createObjectURL(file);
+      throw error;
     }
   };
 
@@ -186,19 +191,28 @@ export default function AdminBlog() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">Featured Image</label>
+              <label className="block text-sm font-bold mb-2">Featured Image (Max 500KB)</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
+                    // Check file size (500KB = 512000 bytes)
+                    if (file.size > 512000) {
+                      alert('Image size must be under 500KB. Please choose a smaller image.');
+                      e.target.value = '';
+                      return;
+                    }
                     const imageUrl = await uploadImage(file);
                     setFormData({...formData, featured_image: imageUrl});
                   }
                 }}
                 className="w-full px-3 py-2 border rounded"
               />
+              <div className="text-xs text-gray-500 mt-1">
+                Maximum file size: 500KB. Supported formats: JPG, PNG, GIF, WebP
+              </div>
               {formData.featured_image && (
                 <div className="mt-2">
                   <img src={formData.featured_image} alt="Featured" className="w-32 h-20 object-cover rounded" />
@@ -207,17 +221,29 @@ export default function AdminBlog() {
             </div>
             
             <div>
-              <label className="block text-sm font-bold mb-2">Additional Images</label>
+              <label className="block text-sm font-bold mb-2">Additional Images (Max 500KB each)</label>
               <input
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={async (e) => {
                   const files = Array.from(e.target.files || []);
+                  
+                  // Check each file size
+                  const oversizedFiles = files.filter(file => file.size > 512000);
+                  if (oversizedFiles.length > 0) {
+                    alert(`${oversizedFiles.length} image(s) exceed 500KB limit. Please choose smaller images.`);
+                    e.target.value = '';
+                    return;
+                  }
+                  
                   const imageUrls = await Promise.all(files.map(uploadImage));
                   setUploadedImages([...uploadedImages, ...imageUrls]);
                 }}
                 className="w-full px-3 py-2 border rounded mb-2"
+              />
+              <div className="text-xs text-gray-500 mb-2">
+                Maximum file size per image: 500KB. Supported formats: JPG, PNG, GIF, WebP
               />
               {uploadedImages.length > 0 && (
                 <div className="grid grid-cols-4 gap-2">
@@ -362,9 +388,9 @@ export default function AdminBlog() {
                               content: post.content,
                               author: post.author,
                               category_id: post.category_id || '',
-                              featured_image: post.featured_image || '',
+                              featured_image: (post as any).featured_image || '',
                               status: post.status,
-                              read_time: post.read_time || 5
+                              read_time: (post as any).read_time || 5
                             });
                             setShowForm(true);
                           }}

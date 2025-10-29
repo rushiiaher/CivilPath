@@ -26,6 +26,11 @@ export default async function handler(req, res) {
       excerpt: { type: String },
       content: { type: String, required: true },
       author: { type: String, required: true },
+      category_id: { type: String },
+      featured_image: { type: String },
+      images: [{ type: String }],
+      read_time: { type: Number, default: 5 },
+      published_at: { type: Date },
       status: { type: String, enum: ['draft', 'published'], default: 'published' }
     }, { timestamps: true });
 
@@ -52,6 +57,24 @@ export default async function handler(req, res) {
       const post = new BlogPost(req.body);
       const savedPost = await post.save();
       return res.status(201).json(savedPost);
+    }
+
+    if (method === 'PUT') {
+      const { id } = query;
+      const updatedPost = await BlogPost.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updatedPost) {
+        return res.status(404).json({ error: 'Blog post not found' });
+      }
+      return res.json(updatedPost);
+    }
+
+    if (method === 'DELETE') {
+      const { id } = query;
+      const deletedPost = await BlogPost.findByIdAndDelete(id);
+      if (!deletedPost) {
+        return res.status(404).json({ error: 'Blog post not found' });
+      }
+      return res.json({ message: 'Blog post deleted successfully' });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

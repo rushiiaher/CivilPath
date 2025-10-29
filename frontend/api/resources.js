@@ -22,10 +22,16 @@ export default async function handler(req, res) {
     // Define Resource schema inline
     const resourceSchema = new mongoose.default.Schema({
       exam_id: { type: String },
+      stage_id: { type: String },
+      subject_id: { type: String },
+      resource_type_id: { type: String },
       title: { type: String, required: true },
       description: { type: String },
       file_path: { type: String },
+      external_url: { type: String },
       file_type: { type: String },
+      author: { type: String },
+      year: { type: String },
       download_count: { type: Number, default: 0 }
     }, { timestamps: true });
 
@@ -54,9 +60,42 @@ export default async function handler(req, res) {
     }
 
     if (method === 'POST') {
+      const { action } = query;
+      
+      // Handle download tracking
+      if (action === 'download') {
+        const { id } = query;
+        const resource = await Resource.findById(id);
+        if (resource) {
+          resource.download_count = (resource.download_count || 0) + 1;
+          await resource.save();
+          return res.json({ message: 'Download tracked' });
+        }
+        return res.status(404).json({ error: 'Resource not found' });
+      }
+      
+      // Regular resource creation
       const resource = new Resource(req.body);
       const savedResource = await resource.save();
       return res.status(201).json(savedResource);
+    }
+
+    if (method === 'PUT') {
+      const { id } = query;
+      const updatedResource = await Resource.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updatedResource) {
+        return res.status(404).json({ error: 'Resource not found' });
+      }
+      return res.json(updatedResource);
+    }
+
+    if (method === 'DELETE') {
+      const { id } = query;
+      const deletedResource = await Resource.findByIdAndDelete(id);
+      if (!deletedResource) {
+        return res.status(404).json({ error: 'Resource not found' });
+      }
+      return res.json({ message: 'Resource deleted successfully' });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
