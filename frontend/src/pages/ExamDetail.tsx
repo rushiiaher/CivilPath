@@ -53,10 +53,10 @@ const ExamDetail = () => {
         
         // Load resources and new structure data
         const [resourcesResponse, examInfoResponse, stagesResponse, subjectsResponse] = await Promise.all([
-          fetch(`/api/resources?exam_id=${foundExam.id}`).then(r => r.json()),
-          fetch(`/api/admin?type=exam-info&exam_id=${foundExam.id}`).then(r => r.json()),
-          fetch(`/api/admin?type=stages&exam_id=${foundExam.id}`).then(r => r.json()),
-          fetch(`/api/admin?type=subjects`).then(r => r.json())
+          fetch(`/api/admin-all?endpoint=resources&exam_id=${foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
+          fetch(`/api/admin-all?endpoint=exam-info&exam_id=${foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
+          fetch(`/api/admin-all?endpoint=stages&exam_id=${foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
+          fetch(`/api/admin-all?endpoint=subjects`).then(r => r.json()).catch(() => ({ records: [] }))
         ]);
         
         console.log('Resources loaded:', resourcesResponse.records);
