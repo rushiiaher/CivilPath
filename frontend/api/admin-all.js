@@ -112,7 +112,7 @@ export default async function handler(req, res) {
 
 async function handleStages(req, res, Stage) {
   const { method, query } = req;
-  const { exam_id } = query;
+  const { exam_id, id } = query;
 
   if (method === 'GET') {
     let stageQuery = {};
@@ -120,16 +120,25 @@ async function handleStages(req, res, Stage) {
       stageQuery.exam_id = exam_id;
     }
     const stages = await Stage.find(stageQuery).sort({ createdAt: -1 });
-    console.log('Stages query:', stageQuery, 'Found stages:', stages.length);
     return res.json({ records: stages });
   }
 
   if (method === 'POST') {
-    console.log('Creating stage with data:', req.body);
     const stage = new Stage(req.body);
     const savedStage = await stage.save();
-    console.log('Saved stage:', savedStage);
     return res.status(201).json(savedStage);
+  }
+
+  if (method === 'PUT') {
+    const updatedStage = await Stage.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedStage) return res.status(404).json({ error: 'Stage not found' });
+    return res.json(updatedStage);
+  }
+
+  if (method === 'DELETE') {
+    const deletedStage = await Stage.findByIdAndDelete(id);
+    if (!deletedStage) return res.status(404).json({ error: 'Stage not found' });
+    return res.json({ message: 'Stage deleted successfully' });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

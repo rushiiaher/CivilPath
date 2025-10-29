@@ -19,6 +19,7 @@ export default function AdminStages() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingStage, setEditingStage] = useState<Stage | null>(null);
   const [formData, setFormData] = useState({
     exam_id: '',
     name: '',
@@ -50,7 +51,16 @@ export default function AdminStages() {
         fetch('/api/admin-all?endpoint=stages').then(r => r.json()),
         fetch('/api/exams').then(r => r.json())
       ]);
-      setStages(stagesData.records || []);
+      
+      const stagesWithExamNames = (stagesData.records || []).map(stage => {
+        const exam = (examsData.records || []).find(e => e.id === stage.exam_id);
+        return {
+          ...stage,
+          exam_name: exam ? exam.name : 'Unknown Exam'
+        };
+      });
+      
+      setStages(stagesWithExamNames);
       setExams(examsData.records || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -67,17 +77,55 @@ export default function AdminStages() {
         slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       };
       
-      await fetch('/api/admin-all?endpoint=stages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(dataToSend)
-      });
+      if (editingStage) {
+        await fetch(`/api/admin-all?endpoint=stages&id=${editingStage.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(dataToSend)
+        });
+      } else {
+        await fetch('/api/admin-all?endpoint=stages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(dataToSend)
+        });
+      }
+      
       fetchData();
-      setShowForm(false);
-      setFormData({ exam_id: '', name: '', description: '' });
+      resetForm();
     } catch (error) {
       console.error('Error saving stage:', error);
     }
+  };
+
+  const handleEdit = (stage: Stage) => {
+    setEditingStage(stage);
+    setFormData({
+      exam_id: stage.exam_id,
+      name: stage.name,
+      description: stage.description || ''
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this stage?')) {
+      try {
+        await fetch(`/api/admin-all?endpoint=stages&id=${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting stage:', error);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ exam_id: '', name: '', description: '' });
+    setEditingStage(null);
+    setShowForm(false);
   };
 
   const predefinedStages = [
@@ -104,7 +152,9 @@ export default function AdminStages() {
 
       {showForm && (
         <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h3 className="text-lg font-semibold mb-4">Add Exam Stage</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {editingStage ? 'Edit Exam Stage' : 'Add Exam Stage'}
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -151,11 +201,11 @@ export default function AdminStages() {
                 type="submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600"
               >
-                Save
+                {editingStage ? 'Update' : 'Save'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={resetForm}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
               >
                 Cancel
@@ -196,8 +246,18 @@ export default function AdminStages() {
                     </td>
                     <td className="px-4 py-2">{stage.description}</td>
                     <td className="px-4 py-2">
-                      <button className="text-blue-500 mr-2 hover:underline">Edit</button>
-                      <button className="text-red-500 hover:underline">Delete</button>
+                      <button 
+                        onClick={() => handleEdit(stage)}
+                        className="text-blue-500 mr-2 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(stage.id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))
