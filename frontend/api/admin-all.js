@@ -102,6 +102,8 @@ export default async function handler(req, res) {
       return handleUpload(req, res);
     } else if (endpoint === 'exam-info') {
       return handleExamInfo(req, res);
+    } else if (endpoint === 'syllabus') {
+      return handleSyllabus(req, res, Resource, ResourceType);
     }
 
     return res.status(404).json({ error: 'Endpoint not found' });
@@ -387,4 +389,62 @@ async function handleExamInfo(req, res) {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
+}
+
+async function handleSyllabus(req, res, Resource, ResourceType) {
+  const { method, query } = req;
+  
+  if (['POST', 'PUT', 'DELETE'].includes(method)) {
+    const user = authenticateToken(req);
+    if (!user) return res.status(401).json({ error: 'Access token required' });
+  }
+
+  if (method === 'GET') {
+    const { exam_id } = query;
+    let syllabusType = await ResourceType.findOne({ name: 'Syllabus' });
+    if (!syllabusType) {
+      return res.json({ records: [] });
+    }
+    
+    let queryFilter = { resource_type_id: syllabusType._id };
+    if (exam_id) queryFilter.exam_id = exam_id;
+    
+    const syllabusResources = await Resource.find(queryFilter).sort({ createdAt: -1 });
+    return res.json({ records: syllabusResources });
+  }
+
+  if (method === 'POST') {
+    let syllabusType = await ResourceType.findOne({ name: 'Syllabus' });
+    if (!syllabusType) {
+      syllabusType = new ResourceType({ name: 'Syllabus', description: 'Official syllabus documents' });
+      await syllabusType.save();
+    }
+    
+    const resourceData = {
+      ...req.body,
+      resource_type_id: syllabusType._id,
+      stage_id: null,
+      subject_id: null
+    };
+    
+    const resource = new Resource(resourceData);
+    const savedResource = await resource.save();
+    return res.status(201).json(savedResource);
+  }
+
+  if (method === 'PUT') {
+    const { id } = query;
+    const updatedResource = await Resource.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedResource) return res.status(404).json({ error: 'Syllabus resource not found' });
+    return res.json(updatedResource);
+  }
+
+  if (method === 'DELETE') {
+    const { id } = query;
+    const deletedResource = await Resource.findByIdAndDelete(id);
+    if (!deletedResource) return res.status(404).json({ error: 'Syllabus resource not found' });
+    return res.json({ message: 'Syllabus resource deleted successfully' });
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
 }

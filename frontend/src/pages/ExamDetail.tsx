@@ -33,6 +33,7 @@ const ExamDetail = () => {
   const [examInfo, setExamInfo] = useState<any[]>([]);
   const [stages, setStages] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
+  const [syllabusResources, setSyllabusResources] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -54,11 +55,12 @@ const ExamDetail = () => {
         console.log('Loading data for exam:', foundExam.id, foundExam._id, foundExam.name);
         
         // Load resources and new structure data
-        const [resourcesResponse, examInfoResponse, stagesResponse, subjectsResponse] = await Promise.all([
+        const [resourcesResponse, examInfoResponse, stagesResponse, subjectsResponse, syllabusResponse] = await Promise.all([
           fetch(`/api/admin-all?endpoint=resources`).then(r => r.json()).catch(() => ({ records: [] })),
           fetch(`/api/admin-all?endpoint=exam-info&exam_id=${foundExam._id || foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
           fetch(`/api/admin-all?endpoint=stages`).then(r => r.json()).catch(() => ({ records: [] })),
-          fetch(`/api/admin-all?endpoint=subjects`).then(r => r.json()).catch(() => ({ records: [] }))
+          fetch(`/api/admin-all?endpoint=subjects`).then(r => r.json()).catch(() => ({ records: [] })),
+          fetch(`/api/admin-all?endpoint=syllabus&exam_id=${foundExam._id || foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] }))
         ]);
         
         // Filter stages for this exam
@@ -89,6 +91,7 @@ const ExamDetail = () => {
         console.log('Resources loaded:', examResources);
         setResources(examResources || []);
         setExamInfo(examInfoResponse.records || []);
+        setSyllabusResources(syllabusResponse.records || []);
         console.log('All stages:', stagesResponse.records);
         console.log('Filtered exam stages:', examStages);
         console.log('Exam for matching:', { _id: foundExam._id, id: foundExam.id, slug: foundExam.slug, name: foundExam.name });
@@ -236,7 +239,6 @@ const ExamDetail = () => {
     
     // Special handling for syllabus section
     if (subTab === 'exam-syllabus') {
-      const syllabusResources = resources.filter(r => r.resource_type_name === 'Syllabus');
       const infoItems = examInfo.filter(item => item.section_type === infoType);
       
       return (
@@ -277,14 +279,15 @@ const ExamDetail = () => {
           {/* Syllabus download buttons */}
           {syllabusResources.length > 0 && (
             <div className="mt-8">
+              <h4 className="text-lg font-semibold mb-4 text-center">Download Syllabus</h4>
               <div className="flex flex-wrap gap-4 justify-center">
                 {syllabusResources.map((resource) => (
                   <Button 
-                    key={resource.id}
+                    key={resource._id || resource.id}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2"
                     asChild
                   >
-                    <a href={resource.file_path || resource.external_url} target="_blank" rel="noopener noreferrer">
+                    <a href={resource.external_url || resource.file_path} target="_blank" rel="noopener noreferrer">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
