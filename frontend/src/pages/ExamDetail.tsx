@@ -73,8 +73,14 @@ const ExamDetail = () => {
         const examResources = (resourcesResponse.records || []).filter(resource => 
           resource.exam_id === foundExam._id || 
           resource.exam_id === foundExam.id || 
-          resource.exam_id === foundExam.slug
+          resource.exam_id === foundExam.slug ||
+          resource.exam_id === foundExam.name
         );
+        
+        console.log('Resource exam_id matching:', {
+          resourceExamIds: (resourcesResponse.records || []).map(r => r.exam_id),
+          examIds: { _id: foundExam._id, id: foundExam.id, slug: foundExam.slug, name: foundExam.name }
+        });
         
         console.log('All resources:', resourcesResponse.records);
         console.log('Filtered exam resources:', examResources);
