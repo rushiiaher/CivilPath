@@ -181,139 +181,111 @@ The diagram should show bidirectional arrows indicating data flow between layers
 
 ## System Dataflow Diagram
 
-### How to Draw the System Dataflow Diagram:
+### Figure 3.2: System Dataflow Diagram
 
-**Level 0 DFD (Context Diagram) - Drawing Instructions:**
-
-```
-┌─────────────┐                    ┌─────────────────────────┐                    ┌─────────────┐
-│   STUDENT   │ ──── Login ────────▶│                         │◄──── Admin ────── │    ADMIN    │
-│             │      Request        │     CIVILPATH STUDY     │      Login        │             │
-│             │◄─── Resources ──────│        PLATFORM         │                   │             │
-│             │     Download        │        (SYSTEM)         │──── Content ────▶ │             │
-└─────────────┘                    │                         │     Management    └─────────────┘
-                                   │                         │
-                                   └─────────────────────────┘
-                                              │
-                                              ▼
-                                   ┌─────────────────────────┐
-                                   │      FILE STORAGE       │
-                                   │     (External Entity)   │
-                                   └─────────────────────────┘
-
-Drawing Elements:
-- Rectangles = External Entities (Student, Admin, File Storage)
-- Circle/Oval = System (CivilPath Study Platform)
-- Arrows = Data Flows with labels
-```
-
-**Level 1 DFD (Process Breakdown) - Drawing Instructions:**
+**Drawing Structure (Based on Standard DFD Format):**
 
 ```
-                    STUDENT                                    ADMIN
-                       │                                        │
-                   Login Request                           Admin Login
-                       │                                        │
-                       ▼                                        ▼
-              ┌─────────────────┐                    ┌─────────────────┐
-              │   1.0 USER      │                    │   2.0 ADMIN     │
-              │ AUTHENTICATION  │                    │ AUTHENTICATION  │
-              └─────────────────┘                    └─────────────────┘
-                       │                                        │
-                   JWT Token                              Admin Token
-                       │                                        │
-                       ▼                                        ▼
-              ┌─────────────────┐                    ┌─────────────────┐
-              │   3.0 CONTENT   │◄──── Updates ─────│   4.0 CONTENT   │
-              │    RETRIEVAL    │                    │   MANAGEMENT    │
-              └─────────────────┘                    └─────────────────┘
-                       │                                        │
-                 Resource Data                            Content Data
-                       │                                        │
-                       ▼                                        ▼
-              ┌─────────────────┐                    ┌─────────────────┐
-              │   5.0 RESOURCE  │                    │   6.0 SYLLABUS  │
-              │    DELIVERY     │                    │   MANAGEMENT    │
-              └─────────────────┘                    └─────────────────┘
-                       │                                        │
-                 Download Links                          Syllabus Data
-                       │                                        │
-                       ▼                                        ▼
-                    STUDENT                              ┌─────────────┐
-                                                        │   D1 EXAMS  │
-                                                        │  DATABASE   │
-                                                        └─────────────┘
-                                                               │
-                                                        ┌─────────────┐
-                                                        │ D2 RESOURCES│
-                                                        │  DATABASE   │
-                                                        └─────────────┘
-                                                               │
-                                                        ┌─────────────┐
-                                                        │  D3 BLOG    │
-                                                        │  DATABASE   │
-                                                        └─────────────┘
+                           ┌─────────────────────────┐
+                           │  SYSTEM DATAFLOW DIAGRAM │
+                           └─────────────────────────┘
 
-Drawing Elements:
-- Circles = Processes (numbered 1.0, 2.0, etc.)
-- Rectangles = External Entities
-- Open Rectangles = Data Stores (D1, D2, D3)
-- Arrows = Data Flows with descriptive labels
+
+┌─────────┐    ┌─────────────┐         ┌─────────────┐    ┌─────────────┐         ┌─────────┐
+│         │    │   Register  │         │ View/Complaint│    │ View Complaint│       │         │
+│ Student │────│             │    ○────│    Status    │────│             │───────│  Admin  │
+│         │    │             │  User DB │             │    │             │       │         │
+└─────────┘    └─────────────┘         └─────────────┘    └─────────────┘       └─────────┘
+     │                                                                                 │
+     │         ┌─────────────┐                           ┌─────────────┐              │
+     └─────────│    Login    │         ○─────────────────│ Update Status│──────────────┘
+               │             │    Complaint DB          │             │
+               └─────────────┘                           └─────────────┘
+
+
+                              Figure 3.2: System Dataflow Diagram
 ```
 
-**Detailed Process Descriptions:**
+**For CivilPath Study Platform - Adapted Structure:**
 
-1. **Process 1.0 - User Authentication**:
-   - Input: Login credentials from Student
-   - Output: JWT Token for access
-   - Function: Validates user and provides access rights
+```
+                           ┌─────────────────────────┐
+                           │  SYSTEM DATAFLOW DIAGRAM │
+                           └─────────────────────────┘
 
-2. **Process 2.0 - Admin Authentication**:
-   - Input: Admin credentials
-   - Output: Admin JWT Token
-   - Function: Validates admin user for content management
 
-3. **Process 3.0 - Content Retrieval**:
-   - Input: Content requests from authenticated users
-   - Output: Exam data, resources, blog content
-   - Data Stores: Reads from D1, D2, D3
+┌─────────┐    ┌─────────────┐         ┌─────────────┐    ┌─────────────┐         ┌─────────┐
+│         │    │   Browse    │         │   Access    │    │   Manage    │       │         │
+│ Student │────│   Exams     │    ○────│  Resources  │────│   Content   │───────│  Admin  │
+│         │    │             │  Exam DB │             │    │             │       │         │
+└─────────┘    └─────────────┘         └─────────────┘    └─────────────┘       └─────────┘
+     │                                                                                 │
+     │         ┌─────────────┐                           ┌─────────────┐              │
+     └─────────│   Login/    │         ○─────────────────│   Upload    │──────────────┘
+               │ Authentication│    Resource DB          │  Resources  │
+               └─────────────┘                           └─────────────┘
 
-4. **Process 4.0 - Content Management**:
-   - Input: Content updates from Admin
-   - Output: Updated content in databases
-   - Data Stores: Writes to D1, D2, D3
 
-5. **Process 5.0 - Resource Delivery**:
-   - Input: Resource requests
-   - Output: Download links and file access
-   - Function: Manages file delivery and download tracking
+                              Figure 3.2: System Dataflow Diagram
+```
 
-6. **Process 6.0 - Syllabus Management**:
-   - Input: Syllabus documents and exam mapping
-   - Output: Organized syllabus structure
-   - Data Stores: Updates D1 (Exams) and D2 (Resources)
+**Drawing Instructions:**
 
-**Data Store Descriptions:**
-- **D1 - Exams Database**: Stores exam information, stages, subjects
-- **D2 - Resources Database**: Stores study materials, files, metadata
-- **D3 - Blog Database**: Stores blog posts, articles, educational content
+1. **Title Box**: Draw a rectangle at the top with "SYSTEM DATAFLOW DIAGRAM"
 
-**Drawing Tips:**
-1. Use circles for processes, rectangles for entities, open rectangles for data stores
-2. Number processes sequentially (1.0, 2.0, etc.)
-3. Label all data flows with descriptive names
-4. Keep arrows straight and avoid crossing lines where possible
-5. Group related processes together
-6. Use consistent spacing and alignment
-7. Add process names inside circles
-8. Show data flow direction clearly with arrow heads
+2. **External Entities**: 
+   - Draw rectangles for "Student" (left) and "Admin" (right)
+   - Use yellow/orange color for entities
+
+3. **Processes**: 
+   - Draw rectangles with rounded corners for processes
+   - Use light pink/salmon color for process boxes
+   - Label processes: "Browse Exams", "Access Resources", "Manage Content", "Login/Authentication", "Upload Resources"
+
+4. **Data Stores**:
+   - Draw circles for databases
+   - Use light blue color for data stores
+   - Label: "Exam DB", "Resource DB"
+
+5. **Data Flows**:
+   - Draw arrows connecting entities, processes, and data stores
+   - Add labels on arrows for data flow names
+
+6. **Layout**:
+   - Arrange in a symmetric pattern
+   - Student on left, Admin on right
+   - Processes in the middle arranged in two rows
+   - Data stores (circles) between processes
+
+**Color Scheme:**
+- **External Entities**: Yellow/Orange rectangles
+- **Processes**: Light pink/salmon rectangles with rounded corners
+- **Data Stores**: Light blue circles
+- **Data Flows**: Black arrows with labels
+
+**Key Components:**
+- **Student Entity**: Initiates exam browsing and resource access
+- **Admin Entity**: Manages content and uploads resources
+- **Exam DB**: Stores examination information
+- **Resource DB**: Stores study materials and files
+- **Processes**: Handle user interactions and data management
+
+**Data Flow Labels:**
+- Student → Browse Exams: "Exam Requests"
+- Browse Exams → Exam DB: "Query Exams"
+- Access Resources → Resource DB: "Fetch Resources"
+- Admin → Manage Content: "Content Updates"
+- Upload Resources → Resource DB: "Store Files"
+- Login/Authentication: "Validate Users"
+
+**Figure Caption**: "Figure 3.2: System Dataflow Diagram"
 
 **Key Data Flow Patterns:**
-- Student → Authentication → Resource Access → Download
-- Admin → Authentication → Content Management → Database Updates
+- Student → Browse Exams → Access Resources → Download
+- Admin → Login → Manage Content → Upload Resources → Database Updates
 - Database → Content Retrieval → Student Interface
 - File Uploads → Validation → Processing → Storage → Delivery
-- Search Requests → Query Processing → Results → Display
+- Authentication → User Validation → Access Control
 
 ## 2. SCOPE OF THE SYSTEM
 
