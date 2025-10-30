@@ -51,20 +51,29 @@ const ExamDetail = () => {
       if (foundExam) {
         setExam(foundExam);
         
-        console.log('Loading data for exam:', foundExam.id, foundExam.name);
+        console.log('Loading data for exam:', foundExam.id, foundExam._id, foundExam.name);
         
         // Load resources and new structure data
         const [resourcesResponse, examInfoResponse, stagesResponse, subjectsResponse] = await Promise.all([
-          fetch(`/api/admin-all?endpoint=resources&exam_id=${foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
-          fetch(`/api/admin-all?endpoint=exam-info&exam_id=${foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
-          fetch(`/api/admin-all?endpoint=stages&exam_id=${foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
+          fetch(`/api/admin-all?endpoint=resources`).then(r => r.json()).catch(() => ({ records: [] })),
+          fetch(`/api/admin-all?endpoint=exam-info&exam_id=${foundExam._id || foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
+          fetch(`/api/admin-all?endpoint=stages&exam_id=${foundExam._id || foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
           fetch(`/api/admin-all?endpoint=subjects`).then(r => r.json()).catch(() => ({ records: [] }))
         ]);
         
+        // Filter resources for this exam
+        const examResources = (resourcesResponse.records || []).filter(resource => 
+          resource.exam_id === foundExam._id || 
+          resource.exam_id === foundExam.id || 
+          resource.exam_id === foundExam.slug
+        );
+        
+        console.log('All resources:', resourcesResponse.records);
+        console.log('Filtered exam resources:', examResources);
         console.log('API Response for stages:', stagesResponse);
         
-        console.log('Resources loaded:', resourcesResponse.records);
-        setResources(resourcesResponse.records || []);
+        console.log('Resources loaded:', examResources);
+        setResources(examResources || []);
         setExamInfo(examInfoResponse.records || []);
         console.log('Stages loaded:', stagesResponse.records);
         setStages(stagesResponse.records || []);
