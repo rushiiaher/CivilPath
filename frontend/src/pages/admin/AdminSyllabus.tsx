@@ -49,8 +49,8 @@ export default function AdminSyllabus() {
   const fetchData = async () => {
     try {
       const [resourcesData, examsData] = await Promise.all([
-        apiRequest('/resources'),
-        apiRequest('/exams')
+        fetch('/api/admin-all?endpoint=resources').then(r => r.json()),
+        fetch('/api/exams').then(r => r.json())
       ]);
       
       // Filter only syllabus resources
@@ -68,7 +68,7 @@ export default function AdminSyllabus() {
     e.preventDefault();
     try {
       // Get syllabus resource type ID
-      const resourceTypesData = await apiRequest('/admin?type=resource-types');
+      const resourceTypesData = await fetch('/api/admin-all?endpoint=resource-types').then(r => r.json());
       const syllabusType = resourceTypesData.records?.find((rt: any) => rt.slug === 'syllabus');
       
       if (!syllabusType) {
@@ -83,8 +83,9 @@ export default function AdminSyllabus() {
         subject_id: null
       };
       
-      await apiRequest('/resources', {
+      await fetch('/api/admin-all?endpoint=resources', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(dataToSend)
       });
       
@@ -99,7 +100,10 @@ export default function AdminSyllabus() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this syllabus?')) {
       try {
-        await apiRequest(`/resources?id=${id}`, { method: 'DELETE' });
+        await fetch(`/api/admin-all?endpoint=resources&id=${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         fetchData();
       } catch (error) {
         console.error('Error deleting syllabus:', error);
@@ -132,7 +136,7 @@ export default function AdminSyllabus() {
               >
                 <option value="">Select Exam</option>
                 {exams.map(exam => (
-                  <option key={exam.id} value={exam.id}>{exam.name}</option>
+                  <option key={exam._id || exam.id} value={exam._id || exam.id}>{exam.name}</option>
                 ))}
               </select>
             </div>
@@ -227,7 +231,7 @@ export default function AdminSyllabus() {
                         View
                       </a>
                       <button
-                        onClick={() => handleDelete(resource.id)}
+                        onClick={() => handleDelete(resource._id || resource.id)}
                         className="text-red-500 hover:underline"
                       >
                         Delete

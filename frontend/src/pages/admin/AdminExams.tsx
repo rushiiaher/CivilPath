@@ -74,7 +74,7 @@ export default function AdminExams() {
       };
 
       if (editingExam) {
-        await apiRequest(`/exams?id=${editingExam.id}`, {
+        await apiRequest(`/exams?id=${editingExam._id || editingExam.id}`, {
           method: 'PUT',
           body: JSON.stringify(dataToSend)
         });
@@ -254,7 +254,7 @@ export default function AdminExams() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(exam.id)}
+                        onClick={() => handleDelete(exam._id || exam.id)}
                         className="text-red-500 hover:underline"
                       >
                         Delete
