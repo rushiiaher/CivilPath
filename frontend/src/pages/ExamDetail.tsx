@@ -127,7 +127,12 @@ const ExamDetail = () => {
     ...stages.map(stage => ({
       value: stage.slug,
       label: stage.name,
-      count: resources.filter(r => r.stage_id === stage.id).length,
+      count: resources.filter(r => 
+        r.stage_id === stage.id || 
+        r.stage_id === stage._id || 
+        r.stage_id === stage.name ||
+        r.stage_id === stage.slug
+      ).length,
       isExamInfo: false,
       isStage: true
     }))
@@ -336,7 +341,16 @@ const ExamDetail = () => {
 
     // Find stage by slug and show its resources
     const stage = stages.find(s => s.slug === tabValue);
-    const stageResources = stage ? resources.filter(r => r.stage_id === stage.id) : [];
+    const stageResources = stage ? resources.filter(r => 
+      r.stage_id === stage.id || 
+      r.stage_id === stage._id || 
+      r.stage_id === stage.name ||
+      r.stage_id === stage.slug
+    ) : [];
+    
+    console.log('Stage found:', stage);
+    console.log('All resources:', resources);
+    console.log('Filtered stage resources:', stageResources);
     
     if (stageResources.length === 0) {
       return (
