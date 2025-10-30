@@ -57,9 +57,17 @@ const ExamDetail = () => {
         const [resourcesResponse, examInfoResponse, stagesResponse, subjectsResponse] = await Promise.all([
           fetch(`/api/admin-all?endpoint=resources`).then(r => r.json()).catch(() => ({ records: [] })),
           fetch(`/api/admin-all?endpoint=exam-info&exam_id=${foundExam._id || foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
-          fetch(`/api/admin-all?endpoint=stages&exam_id=${foundExam._id || foundExam.id}`).then(r => r.json()).catch(() => ({ records: [] })),
+          fetch(`/api/admin-all?endpoint=stages`).then(r => r.json()).catch(() => ({ records: [] })),
           fetch(`/api/admin-all?endpoint=subjects`).then(r => r.json()).catch(() => ({ records: [] }))
         ]);
+        
+        // Filter stages for this exam
+        const examStages = (stagesResponse.records || []).filter(stage => 
+          stage.exam_id === foundExam._id || 
+          stage.exam_id === foundExam.id || 
+          stage.exam_id === foundExam.slug ||
+          stage.exam_id === foundExam.name
+        );
         
         // Filter resources for this exam
         const examResources = (resourcesResponse.records || []).filter(resource => 
@@ -75,8 +83,10 @@ const ExamDetail = () => {
         console.log('Resources loaded:', examResources);
         setResources(examResources || []);
         setExamInfo(examInfoResponse.records || []);
-        console.log('Stages loaded:', stagesResponse.records);
-        setStages(stagesResponse.records || []);
+        console.log('All stages:', stagesResponse.records);
+        console.log('Filtered exam stages:', examStages);
+        console.log('Exam for matching:', { _id: foundExam._id, id: foundExam.id, slug: foundExam.slug, name: foundExam.name });
+        setStages(examStages || []);
         setSubjects(subjectsResponse.records?.filter((s: any) => s.exam_id === foundExam.id) || []);
       }
     } catch (error) {
