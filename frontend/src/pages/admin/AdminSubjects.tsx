@@ -61,6 +61,8 @@ export default function AdminSubjects() {
         fetch('/api/admin-all?endpoint=stages').then(r => r.json())
       ]);
       
+      console.log('Exams loaded:', examsData);
+      
       const subjectsWithNames = (subjectsData.records || []).map(subject => {
         const exam = (examsData.records || []).find(e => 
           (e._id || e.id) === subject.exam_id || e.slug === subject.exam_id || e.name === subject.exam_id
