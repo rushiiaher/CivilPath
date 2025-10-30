@@ -474,7 +474,7 @@ export default function AdminResources() {
                           Edit
                         </button>
                         <button 
-                          onClick={() => handleDelete(resource.id)}
+                          onClick={() => handleDelete(resource._id || resource.id)}
                           className="text-red-500 hover:underline text-sm"
                         >
                           Delete
