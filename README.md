@@ -181,47 +181,139 @@ The diagram should show bidirectional arrows indicating data flow between layers
 
 ## System Dataflow Diagram
 
+### How to Draw the System Dataflow Diagram:
+
+**Level 0 DFD (Context Diagram) - Drawing Instructions:**
+
 ```
-[DIAGRAM DESCRIPTION - System Dataflow Diagram]
+┌─────────────┐                    ┌─────────────────────────┐                    ┌─────────────┐
+│   STUDENT   │ ──── Login ────────▶│                         │◄──── Admin ────── │    ADMIN    │
+│             │      Request        │     CIVILPATH STUDY     │      Login        │             │
+│             │◄─── Resources ──────│        PLATFORM         │                   │             │
+│             │     Download        │        (SYSTEM)         │──── Content ────▶ │             │
+└─────────────┘                    │                         │     Management    └─────────────┘
+                                   │                         │
+                                   └─────────────────────────┘
+                                              │
+                                              ▼
+                                   ┌─────────────────────────┐
+                                   │      FILE STORAGE       │
+                                   │     (External Entity)   │
+                                   └─────────────────────────┘
 
-Level 0 DFD (Context Diagram):
-- External Entities: Students, Administrators
-- System: CivilPath Study Platform
-- Data Flows: Login Credentials, Study Requests, Resource Data, Blog Content
+Drawing Elements:
+- Rectangles = External Entities (Student, Admin, File Storage)
+- Circle/Oval = System (CivilPath Study Platform)
+- Arrows = Data Flows with labels
+```
 
-Level 1 DFD (Main Processes):
+**Level 1 DFD (Process Breakdown) - Drawing Instructions:**
 
-1. **Authentication Process**:
-   - Input: User Credentials
-   - Output: JWT Token, Access Rights
-   - Data Store: User Sessions
+```
+                    STUDENT                                    ADMIN
+                       │                                        │
+                   Login Request                           Admin Login
+                       │                                        │
+                       ▼                                        ▼
+              ┌─────────────────┐                    ┌─────────────────┐
+              │   1.0 USER      │                    │   2.0 ADMIN     │
+              │ AUTHENTICATION  │                    │ AUTHENTICATION  │
+              └─────────────────┘                    └─────────────────┘
+                       │                                        │
+                   JWT Token                              Admin Token
+                       │                                        │
+                       ▼                                        ▼
+              ┌─────────────────┐                    ┌─────────────────┐
+              │   3.0 CONTENT   │◄──── Updates ─────│   4.0 CONTENT   │
+              │    RETRIEVAL    │                    │   MANAGEMENT    │
+              └─────────────────┘                    └─────────────────┘
+                       │                                        │
+                 Resource Data                            Content Data
+                       │                                        │
+                       ▼                                        ▼
+              ┌─────────────────┐                    ┌─────────────────┐
+              │   5.0 RESOURCE  │                    │   6.0 SYLLABUS  │
+              │    DELIVERY     │                    │   MANAGEMENT    │
+              └─────────────────┘                    └─────────────────┘
+                       │                                        │
+                 Download Links                          Syllabus Data
+                       │                                        │
+                       ▼                                        ▼
+                    STUDENT                              ┌─────────────┐
+                                                        │   D1 EXAMS  │
+                                                        │  DATABASE   │
+                                                        └─────────────┘
+                                                               │
+                                                        ┌─────────────┐
+                                                        │ D2 RESOURCES│
+                                                        │  DATABASE   │
+                                                        └─────────────┘
+                                                               │
+                                                        ┌─────────────┐
+                                                        │  D3 BLOG    │
+                                                        │  DATABASE   │
+                                                        └─────────────┘
 
-2. **Exam Management Process**:
-   - Input: Exam Details, Stage Information
-   - Output: Exam Structure, Stage Data
-   - Data Store: Exams DB, Stages DB
+Drawing Elements:
+- Circles = Processes (numbered 1.0, 2.0, etc.)
+- Rectangles = External Entities
+- Open Rectangles = Data Stores (D1, D2, D3)
+- Arrows = Data Flows with descriptive labels
+```
 
-3. **Resource Management Process**:
-   - Input: Resource Files, Metadata
-   - Output: Organized Resources, Download Links
-   - Data Store: Resources DB, File Storage
+**Detailed Process Descriptions:**
 
-4. **Blog Management Process**:
-   - Input: Blog Content, Images
-   - Output: Published Articles, Blog Feed
-   - Data Store: Blog Posts DB
+1. **Process 1.0 - User Authentication**:
+   - Input: Login credentials from Student
+   - Output: JWT Token for access
+   - Function: Validates user and provides access rights
 
-5. **Syllabus Management Process**:
-   - Input: Syllabus Documents, Exam Mapping
-   - Output: Structured Syllabus, Download Links
-   - Data Store: Syllabus Resources DB
+2. **Process 2.0 - Admin Authentication**:
+   - Input: Admin credentials
+   - Output: Admin JWT Token
+   - Function: Validates admin user for content management
 
-Data flows should show:
-- Student → Authentication → Resource Access
-- Admin → Content Management → Database Updates
+3. **Process 3.0 - Content Retrieval**:
+   - Input: Content requests from authenticated users
+   - Output: Exam data, resources, blog content
+   - Data Stores: Reads from D1, D2, D3
+
+4. **Process 4.0 - Content Management**:
+   - Input: Content updates from Admin
+   - Output: Updated content in databases
+   - Data Stores: Writes to D1, D2, D3
+
+5. **Process 5.0 - Resource Delivery**:
+   - Input: Resource requests
+   - Output: Download links and file access
+   - Function: Manages file delivery and download tracking
+
+6. **Process 6.0 - Syllabus Management**:
+   - Input: Syllabus documents and exam mapping
+   - Output: Organized syllabus structure
+   - Data Stores: Updates D1 (Exams) and D2 (Resources)
+
+**Data Store Descriptions:**
+- **D1 - Exams Database**: Stores exam information, stages, subjects
+- **D2 - Resources Database**: Stores study materials, files, metadata
+- **D3 - Blog Database**: Stores blog posts, articles, educational content
+
+**Drawing Tips:**
+1. Use circles for processes, rectangles for entities, open rectangles for data stores
+2. Number processes sequentially (1.0, 2.0, etc.)
+3. Label all data flows with descriptive names
+4. Keep arrows straight and avoid crossing lines where possible
+5. Group related processes together
+6. Use consistent spacing and alignment
+7. Add process names inside circles
+8. Show data flow direction clearly with arrow heads
+
+**Key Data Flow Patterns:**
+- Student → Authentication → Resource Access → Download
+- Admin → Authentication → Content Management → Database Updates
 - Database → Content Retrieval → Student Interface
-- File Uploads → Processing → Storage → Delivery
-```
+- File Uploads → Validation → Processing → Storage → Delivery
+- Search Requests → Query Processing → Results → Display
 
 ## 2. SCOPE OF THE SYSTEM
 
