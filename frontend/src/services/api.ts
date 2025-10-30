@@ -93,28 +93,28 @@ class ApiService {
 
   // Resources API
   async getResources(): Promise<{ records: Resource[] }> {
-    return this.request('resources');
+    return this.request('admin-all?endpoint=resources');
   }
 
   async getResourcesByExam(examId: string): Promise<{ records: Resource[] }> {
-    return this.request(`resources?exam_id=${examId}`);
+    return this.request(`admin-all?endpoint=resources&exam_id=${examId}`);
   }
 
   async getResource(id: string): Promise<Resource> {
-    return this.request(`resources?id=${id}`);
+    return this.request(`admin-all?endpoint=resources&id=${id}`);
   }
 
   // Blog API
   async getBlogPosts(): Promise<{ records: BlogPost[] }> {
-    return this.request('blog');
+    return this.request('admin-all?endpoint=blog');
   }
 
   async getBlogPost(id: string): Promise<BlogPost> {
-    return this.request(`blog?id=${id}`);
+    return this.request(`admin-all?endpoint=blog&id=${id}`);
   }
 
   async getBlogPostsByCategory(categoryId: string): Promise<{ records: BlogPost[] }> {
-    return this.request(`blog?category_id=${categoryId}`);
+    return this.request(`admin-all?endpoint=blog&category_id=${categoryId}`);
   }
 
   // Categories API
