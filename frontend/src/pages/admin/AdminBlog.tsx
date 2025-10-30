@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import AdminLayout from './AdminLayout';
 
 interface BlogPost {
-  id: string;
+  _id?: string;
+  id?: string;
   title: string;
   slug: string;
   excerpt: string;
@@ -30,6 +31,7 @@ export default function AdminBlog() {
   });
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const token = localStorage.getItem('adminToken');
 
@@ -99,6 +101,9 @@ export default function AdminBlog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+    
     try {
       const dataToSend = {
         ...formData,
@@ -108,27 +113,38 @@ export default function AdminBlog() {
         featured_image: formData.featured_image
       };
       
+      let response;
       if (editingPost) {
-        await fetch(`/api/admin-all?endpoint=blog&id=${editingPost.id}`, {
+        const postId = editingPost._id || editingPost.id;
+        response = await fetch(`/api/admin-all?endpoint=blog&id=${postId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(dataToSend)
         });
       } else {
-        await fetch('/api/admin-all?endpoint=blog', {
+        response = await fetch('/api/admin-all?endpoint=blog', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(dataToSend)
         });
       }
       
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      setSuccessMessage(editingPost ? 'Blog post updated successfully!' : 'Blog post created successfully!');
       fetchPosts();
       setShowForm(false);
       setFormData({ title: '', excerpt: '', content: '', author: 'Admin', category_id: '', featured_image: '', status: 'published', read_time: 5 });
       setEditingPost(null);
       setUploadedImages([]);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
       console.error('Error saving blog post:', error);
+      setError(`Failed to save blog post: ${error.message}`);
     }
   };
 
@@ -143,6 +159,18 @@ export default function AdminBlog() {
         >
           Add New Post
         </button>
+        
+        {successMessage && (
+          <div className="mt-2 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            {successMessage}
+          </div>
+        )}
+        
+        {error && (
+          <div className="mt-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
       </div>
 
       {showForm && (
@@ -354,7 +382,7 @@ export default function AdminBlog() {
                 </tr>
               ) : (
                 posts.map((post) => (
-                  <tr key={post.id} className="border-t hover:bg-gray-50">
+                  <tr key={post._id || post.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-2">
                       <div className="font-medium">{post.title}</div>
                       <div className="text-sm text-gray-500 truncate max-w-xs">{post.excerpt}</div>
@@ -386,6 +414,7 @@ export default function AdminBlog() {
                               status: post.status,
                               read_time: (post as any).read_time || 5
                             });
+                            setUploadedImages((post as any).images || []);
                             setShowForm(true);
                           }}
                           className="text-blue-600 hover:text-blue-800 text-sm"
@@ -396,13 +425,22 @@ export default function AdminBlog() {
                           onClick={async () => {
                             if (confirm('Are you sure you want to delete this post?')) {
                               try {
-                                await fetch(`/api/admin-all?endpoint=blog&id=${post.id}`, {
+                                const postId = post._id || post.id;
+                                const response = await fetch(`/api/admin-all?endpoint=blog&id=${postId}`, {
                                   method: 'DELETE',
                                   headers: { 'Authorization': `Bearer ${token}` }
                                 });
+                                
+                                if (!response.ok) {
+                                  throw new Error(`HTTP ${response.status}`);
+                                }
+                                
+                                setSuccessMessage('Blog post deleted successfully!');
                                 fetchPosts();
+                                setTimeout(() => setSuccessMessage(''), 3000);
                               } catch (error) {
                                 console.error('Error deleting post:', error);
+                                setError(`Failed to delete post: ${error.message}`);
                               }
                             }
                           }}

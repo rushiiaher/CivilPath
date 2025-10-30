@@ -215,6 +215,12 @@ async function handleSubjects(req, res, Subject) {
 async function handleBlog(req, res, BlogPost) {
   const { method, query } = req;
 
+  // Authentication required for POST, PUT, DELETE
+  if (['POST', 'PUT', 'DELETE'].includes(method)) {
+    const user = authenticateToken(req);
+    if (!user) return res.status(401).json({ error: 'Access token required' });
+  }
+
   if (method === 'GET') {
     const { id } = query;
     if (id) {
@@ -222,7 +228,10 @@ async function handleBlog(req, res, BlogPost) {
       if (!post) return res.status(404).json({ error: 'Blog post not found' });
       return res.json(post);
     }
-    const posts = await BlogPost.find({ status: 'published' }).sort({ createdAt: -1 });
+    // For admin, show all posts; for public, show only published
+    const user = authenticateToken(req);
+    const filter = user ? {} : { status: 'published' };
+    const posts = await BlogPost.find(filter).sort({ createdAt: -1 });
     return res.json({ records: posts });
   }
 
