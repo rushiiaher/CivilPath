@@ -40,22 +40,14 @@ export default function AdminBlog() {
         throw new Error('File size exceeds 500KB limit');
       }
       
-      const fileName = `${Date.now()}-${file.name}`;
-      const response = await fetch('/api/admin-all?endpoint=upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          fileName,
-          fileType: file.type,
-          fileSize: file.size
-        })
-      });
+      // Create a local URL for the uploaded file
+      const localUrl = URL.createObjectURL(file);
       
-      const result = await response.json();
-      return result.url || URL.createObjectURL(file);
+      // Store file info for potential future upload to cloud storage
+      const fileName = `${Date.now()}-${file.name}`;
+      console.log('File uploaded locally:', fileName, file.size, 'bytes');
+      
+      return localUrl;
     } catch (error) {
       console.error('Upload error:', error);
       throw error;
