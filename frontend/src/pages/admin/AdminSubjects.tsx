@@ -102,8 +102,17 @@ export default function AdminSubjects() {
   const fetchStages = async (examId: string) => {
     if (!examId) return;
     try {
-      const data = await fetch(`/api/admin-all?endpoint=stages&exam_id=${examId}`).then(r => r.json());
-      setStages(data.records || []);
+      // Fetch all stages and filter by exam_id
+      const data = await fetch('/api/admin-all?endpoint=stages').then(r => r.json());
+      const examStages = (data.records || []).filter((stage: any) => 
+        stage.exam_id === examId || 
+        stage.exam_id === exams.find(e => (e._id || e.id) === examId)?.name ||
+        stage.exam_id === exams.find(e => (e._id || e.id) === examId)?.slug
+      );
+      console.log('Fetching stages for exam:', examId);
+      console.log('All stages:', data.records);
+      console.log('Filtered stages:', examStages);
+      setStages(examStages);
     } catch (error) {
       console.error('Error fetching stages:', error);
     }
@@ -225,7 +234,7 @@ export default function AdminSubjects() {
                 >
                   <option value="">Select Stage</option>
                   {stages.map(stage => (
-                    <option key={stage.id} value={stage.id}>{stage.name}</option>
+                    <option key={stage._id || stage.id} value={stage._id || stage.id}>{stage.name}</option>
                   ))}
                 </select>
               </div>
