@@ -67,12 +67,25 @@ export default function AdminSubjects() {
         const exam = (examsData.records || []).find(e => 
           (e._id || e.id) === subject.exam_id || e.slug === subject.exam_id || e.name === subject.exam_id
         );
+        
+        // If no exam_id, try to find exam through stage
+        let examFromStage = null;
+        if (!exam && subject.stage_id) {
+          const stage = (stagesData.records || []).find(s => 
+            (s._id || s.id) === subject.stage_id || s.name === subject.stage_id
+          );
+          if (stage && stage.exam_id) {
+            examFromStage = (examsData.records || []).find(e => 
+              (e._id || e.id) === stage.exam_id || e.slug === stage.exam_id || e.name === stage.exam_id
+            );
+          }
+        }
         const stage = (stagesData.records || []).find(s => 
           s.id === subject.stage_id || s._id === subject.stage_id
         );
         return {
           ...subject,
-          exam_name: exam ? exam.name : subject.exam_id,
+          exam_name: exam ? exam.name : (examFromStage ? examFromStage.name : 'No Exam'),
           stage_name: stage ? stage.name : subject.stage_id
         };
       });
@@ -100,9 +113,14 @@ export default function AdminSubjects() {
     e.preventDefault();
     try {
       const dataToSend = {
-        ...formData,
+        exam_id: formData.exam_id,
+        stage_id: formData.stage_id,
+        name: formData.name,
+        description: formData.description,
         slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       };
+      
+      console.log('Saving subject with data:', dataToSend);
       
       if (editingSubject) {
         await fetch(`/api/admin-all?endpoint=subjects&id=${editingSubject._id || editingSubject.id}`, {
