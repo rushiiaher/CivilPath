@@ -42,14 +42,13 @@ export default function AdminBlog() {
         throw new Error('File size exceeds 500KB limit');
       }
       
-      // Create a local URL for the uploaded file
-      const localUrl = URL.createObjectURL(file);
-      
-      // Store file info for potential future upload to cloud storage
-      const fileName = `${Date.now()}-${file.name}`;
-      console.log('File uploaded locally:', fileName, file.size, 'bytes');
-      
-      return localUrl;
+      // Convert to base64 for storage
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
     } catch (error) {
       console.error('Upload error:', error);
       throw error;
