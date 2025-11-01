@@ -92,11 +92,11 @@ const BlogDetail = () => {
       {/* Hero Section */}
       <header className="relative">
         {post.featured_image ? (
-          <div className="relative h-[70vh] overflow-hidden">
+          <div className="relative" style={{ aspectRatio: '2/1' }}>
             <img 
               src={post.featured_image} 
               alt={post.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain bg-gray-100"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
             <div className="absolute inset-0 flex items-end">
