@@ -198,18 +198,128 @@ export default function AdminBlog() {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold mb-2">Content</label>
-              <textarea
-                value={formData.content}
-                onChange={(e) => setFormData({...formData, content: e.target.value})}
-                className="w-full px-3 py-2 border rounded font-mono text-sm"
-                rows={10}
-                placeholder="Write your blog content here. You can use HTML tags for formatting."
-                required
-              />
-              <div className="text-xs text-gray-500 mt-1">
-                Tip: Use HTML tags like &lt;p&gt;, &lt;h3&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;li&gt; for formatting
+              <label className="block text-sm font-bold mb-2">Content (HTML Supported)</label>
+              <div className="border rounded">
+                {/* HTML Toolbar */}
+                <div className="bg-gray-50 border-b p-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = document.getElementById('content-textarea') as HTMLTextAreaElement;
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = textarea.value.substring(start, end);
+                      const newText = `<h2>${selectedText || 'Heading'}</h2>`;
+                      const newContent = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+                      setFormData({...formData, content: newContent});
+                    }}
+                    className="px-2 py-1 bg-white border rounded text-xs hover:bg-gray-100"
+                  >
+                    H2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = document.getElementById('content-textarea') as HTMLTextAreaElement;
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = textarea.value.substring(start, end);
+                      const newText = `<h3>${selectedText || 'Heading'}</h3>`;
+                      const newContent = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+                      setFormData({...formData, content: newContent});
+                    }}
+                    className="px-2 py-1 bg-white border rounded text-xs hover:bg-gray-100"
+                  >
+                    H3
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = document.getElementById('content-textarea') as HTMLTextAreaElement;
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = textarea.value.substring(start, end);
+                      const newText = `<strong>${selectedText || 'Bold text'}</strong>`;
+                      const newContent = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+                      setFormData({...formData, content: newContent});
+                    }}
+                    className="px-2 py-1 bg-white border rounded text-xs hover:bg-gray-100 font-bold"
+                  >
+                    B
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const textarea = document.getElementById('content-textarea') as HTMLTextAreaElement;
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const selectedText = textarea.value.substring(start, end);
+                      const newText = `<em>${selectedText || 'Italic text'}</em>`;
+                      const newContent = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+                      setFormData({...formData, content: newContent});
+                    }}
+                    className="px-2 py-1 bg-white border rounded text-xs hover:bg-gray-100 italic"
+                  >
+                    I
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newContent = formData.content + '\n<p>New paragraph</p>\n';
+                      setFormData({...formData, content: newContent});
+                    }}
+                    className="px-2 py-1 bg-white border rounded text-xs hover:bg-gray-100"
+                  >
+                    P
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newContent = formData.content + '\n<ul>\n  <li>List item 1</li>\n  <li>List item 2</li>\n</ul>\n';
+                      setFormData({...formData, content: newContent});
+                    }}
+                    className="px-2 py-1 bg-white border rounded text-xs hover:bg-gray-100"
+                  >
+                    UL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newContent = formData.content + '\n<blockquote>\n  <p>Quote text here</p>\n</blockquote>\n';
+                      setFormData({...formData, content: newContent});
+                    }}
+                    className="px-2 py-1 bg-white border rounded text-xs hover:bg-gray-100"
+                  >
+                    Quote
+                  </button>
+                </div>
+                <textarea
+                  id="content-textarea"
+                  value={formData.content}
+                  onChange={(e) => setFormData({...formData, content: e.target.value})}
+                  className="w-full px-3 py-2 border-0 rounded-b font-mono text-sm resize-none"
+                  rows={15}
+                  placeholder="Write your blog content here using HTML tags for rich formatting..."
+                  required
+                />
               </div>
+              <div className="text-xs text-gray-500 mt-2 space-y-1">
+                <div><strong>HTML Tags:</strong> &lt;h2&gt;, &lt;h3&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;blockquote&gt;, &lt;br&gt;</div>
+                <div><strong>Example:</strong> &lt;p&gt;This is a paragraph with &lt;strong&gt;bold&lt;/strong&gt; and &lt;em&gt;italic&lt;/em&gt; text.&lt;/p&gt;</div>
+              </div>
+              
+              {/* Preview */}
+              {formData.content && (
+                <div className="mt-4">
+                  <label className="block text-sm font-bold mb-2">Preview:</label>
+                  <div className="border rounded p-4 bg-gray-50 max-h-60 overflow-y-auto">
+                    <div 
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: formData.content }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold mb-2">Featured Image (Max 500KB)</label>

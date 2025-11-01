@@ -175,15 +175,11 @@ const BlogDetail = () => {
             )}
 
             {/* Main Content */}
-            <article className="prose prose-xl max-w-none">
+            <article className="prose prose-xl max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-em:text-gray-600 prose-blockquote:border-l-4 prose-blockquote:border-blue-600 prose-blockquote:bg-blue-50 prose-blockquote:p-4 prose-blockquote:rounded-r-lg prose-ul:text-gray-700 prose-li:text-gray-700">
               <div 
-                className="text-gray-700 leading-relaxed"
-                style={{
-                  fontSize: '1.125rem',
-                  lineHeight: '1.8',
-                }}
+                className="blog-content"
                 dangerouslySetInnerHTML={{ 
-                  __html: post.content.replace(/\n/g, '<br><br>') 
+                  __html: post.content 
                 }} 
               />
             </article>
@@ -296,3 +292,59 @@ const BlogDetail = () => {
 };
 
 export default BlogDetail;
+
+// Add custom CSS for blog content
+const style = document.createElement('style');
+style.textContent = `
+  .blog-content h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 2rem 0 1rem 0;
+    line-height: 1.2;
+  }
+  .blog-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 1.5rem 0 0.75rem 0;
+    line-height: 1.3;
+  }
+  .blog-content p {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #4b5563;
+    margin: 1rem 0;
+  }
+  .blog-content strong {
+    font-weight: 600;
+    color: #1f2937;
+  }
+  .blog-content em {
+    font-style: italic;
+    color: #6b7280;
+  }
+  .blog-content ul {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+  }
+  .blog-content li {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #4b5563;
+    margin: 0.5rem 0;
+  }
+  .blog-content blockquote {
+    border-left: 4px solid #2563eb;
+    background: #eff6ff;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+    font-style: italic;
+  }
+  .blog-content blockquote p {
+    margin: 0;
+    color: #1e40af;
+  }
+`;
+document.head.appendChild(style);
