@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Clock, User, ArrowLeft, Share2, Facebook, Twitter, Linkedin } from 'lucide-react';
+import { Calendar, Clock, User, ArrowLeft, Share2, Facebook, Twitter, Linkedin, ArrowRight } from 'lucide-react';
 import { apiService, BlogPost } from '../services/api';
 
 const BlogDetail = () => {
@@ -89,68 +89,98 @@ const BlogDetail = () => {
         </div>
       </div>
 
-      {/* Article Header */}
-      <article className="bg-white">
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-4xl mx-auto">
-            {/* Category Badge */}
-            <div className="mb-4">
-              <span className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-full">
-                {post.category_name || 'General'}
-              </span>
-            </div>
-
-            {/* Title */}
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-              {post.title}
-            </h1>
-
-            {/* Meta Information */}
-            <div className="flex flex-wrap items-center text-gray-600 mb-8 gap-6">
-              <div className="flex items-center">
-                <User className="w-4 h-4 mr-2" />
-                <span>{post.author}</span>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>{new Date(post.created_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}</span>
-              </div>
-              <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-2" />
-                <span>{post.read_time} min read</span>
+      {/* Featured Image Hero */}
+      {post.featured_image && (
+        <div className="relative" style={{ aspectRatio: '2/1', maxHeight: '60vh' }}>
+          <img 
+            src={post.featured_image} 
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          
+          {/* Title Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight drop-shadow-lg">
+                {post.title}
+              </h1>
+              <div className="flex items-center text-white/90 gap-6">
+                <div className="flex items-center">
+                  <Clock className="w-5 h-5 mr-2" />
+                  <span className="text-lg">{post.read_time} min read</span>
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  <span className="text-lg">{new Date(post.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}</span>
+                </div>
               </div>
             </div>
-
-            {/* Featured Image */}
-            {post.featured_image && (
-              <div className="mb-8">
-                <img 
-                  src={post.featured_image} 
-                  alt={post.title}
-                  className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
-                />
-              </div>
-            )}
-
-            {/* Excerpt */}
-            {post.excerpt && (
-              <div className="text-xl text-gray-700 leading-relaxed mb-8 p-6 bg-gray-50 rounded-lg border-l-4 border-blue-600">
-                {post.excerpt}
-              </div>
-            )}
           </div>
         </div>
-      </article>
+      )}
+
+      {/* Article Header - No Image Case */}
+      {!post.featured_image && (
+        <article className="bg-white py-16">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">
+                {post.title}
+              </h1>
+              <div className="flex justify-center items-center text-gray-600 gap-8 mb-8">
+                <div className="flex items-center">
+                  <Clock className="w-5 h-5 mr-2" />
+                  <span className="text-lg">{post.read_time} min read</span>
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  <span className="text-lg">{new Date(post.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      )}
+
+      {/* Excerpt Section */}
+      {post.excerpt && (
+        <div className="bg-blue-50 py-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-2xl text-gray-800 leading-relaxed text-center font-medium italic">
+                “{post.excerpt}”
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Article Content */}
-      <div className="bg-white">
-        <div className="container mx-auto px-4 pb-12">
+      <div className="bg-white py-16">
+        <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="prose prose-lg max-w-none">
+            {/* Author Info */}
+            <div className="flex items-center mb-12 p-6 bg-gray-50 rounded-2xl">
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mr-4">
+                <User className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-900">Written by {post.author}</div>
+                <div className="text-gray-600">Civil Services Expert</div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="prose prose-xl max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900">
               <div 
                 dangerouslySetInnerHTML={{ 
                   __html: post.content.replace(/\n/g, '<br>') 
@@ -158,45 +188,49 @@ const BlogDetail = () => {
               />
             </div>
 
-            {/* Additional Images */}
+            {/* Additional Images Gallery */}
             {post.images && post.images.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4">Related Images</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="mt-16">
+                <h3 className="text-3xl font-bold mb-8 text-center text-gray-900">Visual Gallery</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {post.images.map((image, index) => (
-                    <img 
-                      key={index}
-                      src={image} 
-                      alt={`Related image ${index + 1}`}
-                      className="w-full h-48 object-cover rounded-lg shadow-md"
-                    />
+                    <div key={index} className="group cursor-pointer">
+                      <img 
+                        src={image} 
+                        alt={`Gallery image ${index + 1}`}
+                        className="w-full h-64 object-cover rounded-2xl shadow-lg group-hover:shadow-2xl transition-all duration-300 transform group-hover:scale-105"
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
             {/* Share Section */}
-            <div className="mt-12 pt-8 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Share this article</h3>
-                <div className="flex gap-3">
+            <div className="mt-16 pt-8 border-t border-gray-200">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Share this article</h3>
+                <div className="flex justify-center gap-4">
                   <button
                     onClick={() => sharePost('facebook')}
-                    className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                    className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
-                    <Facebook className="w-4 h-4" />
+                    <Facebook className="w-5 h-5 mr-2" />
+                    Facebook
                   </button>
                   <button
                     onClick={() => sharePost('twitter')}
-                    className="p-2 bg-sky-500 text-white rounded-full hover:bg-sky-600 transition-colors"
+                    className="flex items-center px-6 py-3 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
-                    <Twitter className="w-4 h-4" />
+                    <Twitter className="w-5 h-5 mr-2" />
+                    Twitter
                   </button>
                   <button
                     onClick={() => sharePost('linkedin')}
-                    className="p-2 bg-blue-700 text-white rounded-full hover:bg-blue-800 transition-colors"
+                    className="flex items-center px-6 py-3 bg-blue-700 text-white rounded-xl hover:bg-blue-800 transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
-                    <Linkedin className="w-4 h-4" />
+                    <Linkedin className="w-5 h-5 mr-2" />
+                    LinkedIn
                   </button>
                 </div>
               </div>
@@ -207,39 +241,47 @@ const BlogDetail = () => {
 
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
-        <div className="bg-gray-50 py-16">
+        <div className="bg-gradient-to-b from-gray-50 to-white py-20">
           <div className="container mx-auto px-4">
-            <div className="max-w-6xl mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-8">Related Articles</h2>
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold text-gray-900 mb-4">Continue Reading</h2>
+                <p className="text-xl text-gray-600">More articles to enhance your preparation</p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {relatedPosts.map((relatedPost) => (
                   <Link 
                     key={relatedPost.id}
                     to={`/blog/${relatedPost.slug}`}
-                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                    className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                   >
-                    <div className="h-48 bg-gray-200 relative overflow-hidden">
+                    <div className="relative overflow-hidden" style={{ aspectRatio: '2/1' }}>
                       {relatedPost.featured_image ? (
                         <img 
                           src={relatedPost.featured_image} 
                           alt={relatedPost.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                          <span className="text-gray-500 text-sm">📝 Blog Image</span>
+                        <div className="w-full h-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-3xl mb-2">📚</div>
+                            <span className="text-gray-500 text-sm font-medium">Article</span>
+                          </div>
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     <div className="p-6">
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2">
+                      <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
                         {relatedPost.title}
                       </h3>
-                      <p className="text-gray-600 text-sm line-clamp-2">
+                      <p className="text-gray-600 line-clamp-2 mb-4">
                         {relatedPost.excerpt}
                       </p>
-                      <div className="mt-4 text-xs text-gray-500">
-                        {new Date(relatedPost.created_at).toLocaleDateString()}
+                      <div className="flex items-center justify-between">
+                        <span className="text-blue-600 font-semibold group-hover:text-blue-700">Read More</span>
+                        <ArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>
                   </Link>

@@ -133,112 +133,105 @@ const Blog = () => {
       <section className="py-16">
         <div className="container mx-auto px-4">
           {loading ? (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-2 text-gray-600">Loading blog posts...</p>
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <p className="mt-4 text-gray-600 text-lg">Loading blog posts...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
               {filteredPosts.map((post) => (
-                <article key={post.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="h-48 bg-gradient-to-br from-blue-100 to-indigo-100 relative overflow-hidden flex items-center justify-center">
-                    {post.featured_image ? (
-                      <img 
-                        src={post.featured_image} 
-                        alt={post.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <span className="text-gray-500 text-sm">📝 Blog Post</span>
-                    )}
-                    <div className="absolute top-4 left-4">
-                      <span className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-full">
-                        {post.category_name || 'General'}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <div className="flex items-center text-sm text-gray-500 mb-2">
-                      <User className="w-4 h-4 mr-1" />
-                      <span className="mr-4">{post.author}</span>
-                      <Clock className="w-4 h-4 mr-1" />
-                      <span>{post.read_time} min read</span>
-                      <Calendar className="w-4 h-4 ml-4 mr-1" />
-                      <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-                      {post.title}
-                    </h3>
-                    
-                    <p className="text-gray-600 line-clamp-3 mb-4">
-                      {post.excerpt}
-                    </p>
-                    
-                    {/* Additional images preview */}
-                    {post.images && post.images.length > 0 && (
-                      <div className="flex gap-2 mb-4">
-                        {post.images.slice(0, 3).map((image, index) => (
-                          <div key={index} className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
-                            <img 
-                              src={image} 
-                              alt={`Image ${index + 1}`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.parentElement.innerHTML = '🖼️';
-                              }}
-                            />
+                <Link key={post.id} to={`/blog/${post.slug}`} className="group">
+                  <article className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                    {/* Image Container - Optimized for 2000x1000 images */}
+                    <div className="relative overflow-hidden" style={{ aspectRatio: '2/1' }}>
+                      {post.featured_image ? (
+                        <img 
+                          src={post.featured_image} 
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-4xl mb-2">📚</div>
+                            <span className="text-gray-500 text-sm font-medium">Blog Article</span>
                           </div>
-                        ))}
-                        {post.images.length > 3 && (
-                          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                            <span className="text-xs text-gray-500">+{post.images.length - 3}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                        </div>
+                      )}
+                      {/* Gradient overlay for better text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
                     
-                    <div className="flex items-center justify-between">
-                      <Link 
-                        to={`/blog/${post.slug}`}
-                        className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center"
-                      >
-                        Read More <ArrowRight className="w-4 h-4 ml-1" />
-                      </Link>
+                    {/* Content */}
+                    <div className="p-8">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
+                        {post.title}
+                      </h3>
                       
-
+                      <p className="text-gray-600 line-clamp-3 mb-6 text-lg leading-relaxed">
+                        {post.excerpt}
+                      </p>
+                      
+                      {/* Read More Button */}
+                      <div className="flex items-center justify-between">
+                        <div className="inline-flex items-center text-blue-600 font-semibold group-hover:text-blue-700 transition-colors">
+                          <span>Read Article</span>
+                          <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                        
+                        {/* Reading indicator */}
+                        <div className="flex items-center text-gray-400">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span className="text-sm">{post.read_time || '5'} min</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </article>
+                  </article>
+                </Link>
               ))}
+            </div>
+          )}
+          
+          {/* Empty State */}
+          {!loading && filteredPosts.length === 0 && (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">📝</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No articles found</h3>
+              <p className="text-gray-600">Try selecting a different category or check back later for new content.</p>
             </div>
           )}
         </div>
       </section>
 
       {/* Newsletter Section */}
-      <section className="bg-blue-600 py-16">
+      <section className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 py-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-3xl font-bold text-white mb-4">
-              Stay Updated with Latest Articles
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-4">
+                <span className="text-2xl">✉️</span>
+              </div>
+            </div>
+            <h3 className="text-4xl font-bold text-white mb-6">
+              Stay Ahead in Your Preparation
             </h3>
-            <p className="text-blue-100 mb-8">
-              Get the latest preparation tips, strategies, and success stories delivered to your inbox
+            <p className="text-xl text-blue-100 mb-10 leading-relaxed">
+              Get expert insights, study strategies, and the latest updates delivered directly to your inbox
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
               <input
                 type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-white/50"
+                placeholder="Enter your email address"
+                className="flex-1 px-6 py-4 rounded-xl border-0 focus:ring-4 focus:ring-white/30 text-lg shadow-lg"
               />
-              <button className="px-6 py-3 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors">
+              <button className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                 Subscribe
               </button>
             </div>
+            <p className="text-blue-200 text-sm mt-4">Join 10,000+ aspirants already subscribed</p>
           </div>
         </div>
       </section>

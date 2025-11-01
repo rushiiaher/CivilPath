@@ -134,34 +134,28 @@ const Home = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
-            <div className="text-center p-4 md:p-6">
+            <div className="p-4 md:p-6">
               <img 
                 src={img1} 
                 alt="Comprehensive Study Material" 
-                className="w-full h-40 md:h-48 object-cover rounded-lg mx-auto mb-3 md:mb-4"
+                className="w-full h-auto object-contain rounded-lg mx-auto"
               />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Comprehensive Study Material</h3>
-              <p className="text-sm md:text-base text-gray-600">Complete syllabus coverage with updated content for UPSC and state services</p>
             </div>
             
-            <div className="text-center p-4 md:p-6">
+            <div className="p-4 md:p-6">
               <img 
                 src={img2} 
                 alt="Previous Year Papers" 
-                className="w-full h-40 md:h-48 object-cover rounded-lg mx-auto mb-3 md:mb-4"
+                className="w-full h-auto object-contain rounded-lg mx-auto"
               />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Previous Year Papers</h3>
-              <p className="text-sm md:text-base text-gray-600">Extensive collection of previous year questions with detailed solutions</p>
             </div>
             
-            <div className="text-center p-4 md:p-6">
+            <div className="p-4 md:p-6">
               <img 
                 src={img3} 
                 alt="Expert Guidance" 
-                className="w-full h-40 md:h-48 object-cover rounded-lg mx-auto mb-3 md:mb-4"
+                className="w-full h-auto object-contain rounded-lg mx-auto"
               />
-              <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3">Expert Guidance</h3>
-              <p className="text-sm md:text-base text-gray-600">Curated content and strategies from successful candidates and experts</p>
             </div>
           </div>
         </div>
