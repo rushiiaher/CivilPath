@@ -9,9 +9,9 @@ import { Search, ArrowRight } from 'lucide-react';
 import { apiService, Exam } from '@/services/api';
 import { inspirationalQuotes } from '@/data/sample-data';
 import heroImage from '@/assets/banner.jpg';
-import img1 from '@/assets/img1.avif';
-import img2 from '@/assets/img2.avif';
-import img3 from '@/assets/img3.avif';
+import img1 from '@/assets/Comprehensive Study Material.jpg';
+import img2 from '@/assets/Previous Year Papers.jpg';
+import img3 from '@/assets/Expert Guidance.jpg';
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
