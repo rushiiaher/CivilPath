@@ -89,66 +89,45 @@ const BlogDetail = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <header className="relative">
-        {post.featured_image ? (
-          <div className="relative" style={{ aspectRatio: '2/1' }}>
-            <img 
-              src={post.featured_image} 
-              alt={post.title}
-              className="w-full h-full object-contain bg-gray-100"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-            <div className="absolute inset-0 flex items-end">
-              <div className="container mx-auto px-4 pb-16">
-                <div className="max-w-4xl">
-                  <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                    {post.title}
-                  </h1>
-                  <div className="flex items-center text-white/90 gap-8 text-lg">
-                    <div className="flex items-center">
-                      <Clock className="w-5 h-5 mr-2" />
-                      <span>{post.read_time} min read</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="w-5 h-5 mr-2" />
-                      <span>{new Date(post.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}</span>
-                    </div>
-                  </div>
-                </div>
+      {/* Header Section */}
+      <header className="bg-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+              {post.title}
+            </h1>
+            <div className="flex items-center text-gray-600 gap-8 text-lg">
+              <div className="flex items-center">
+                <Clock className="w-5 h-5 mr-2" />
+                <span>{post.read_time} min read</span>
+              </div>
+              <div className="flex items-center">
+                <Calendar className="w-5 h-5 mr-2" />
+                <span>{new Date(post.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}</span>
               </div>
             </div>
           </div>
-        ) : (
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
-            <div className="container mx-auto px-4">
-              <div className="max-w-4xl mx-auto text-center">
-                <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-8 leading-tight">
-                  {post.title}
-                </h1>
-                <div className="flex justify-center items-center text-gray-600 gap-8 text-lg">
-                  <div className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2" />
-                    <span>{post.read_time} min read</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Calendar className="w-5 h-5 mr-2" />
-                    <span>{new Date(post.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </header>
+
+      {/* Featured Image */}
+      {post.featured_image && (
+        <div className="bg-white pb-8">
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto">
+              <img 
+                src={post.featured_image} 
+                alt={post.title}
+                className="w-full h-80 object-cover rounded-lg shadow-lg"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Article Content */}
       <main className="py-16">
@@ -186,15 +165,15 @@ const BlogDetail = () => {
 
             {/* Image Gallery */}
             {post.images && post.images.length > 0 && (
-              <section className="mt-20">
-                <h2 className="text-3xl font-bold text-gray-900 mb-10 text-center">Visual Resources</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <section className="mt-16">
+                <h2 className="text-2xl font-bold text-gray-900 mb-8">Related Images</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {post.images.map((image, index) => (
-                    <div key={index} className="group overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <div key={index} className="overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow">
                       <img 
                         src={image} 
-                        alt={`Resource ${index + 1}`}
-                        className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
+                        alt={`Related image ${index + 1}`}
+                        className="w-full h-48 object-cover"
                       />
                     </div>
                   ))}
