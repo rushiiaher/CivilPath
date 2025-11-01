@@ -138,7 +138,7 @@ const Home = () => {
               <img 
                 src={img1} 
                 alt="Comprehensive Study Material" 
-                className="w-full h-auto object-contain rounded-lg mx-auto"
+                className="w-full h-auto object-contain rounded-lg mx-auto max-w-sm max-h-80"
               />
             </div>
             
@@ -146,7 +146,7 @@ const Home = () => {
               <img 
                 src={img2} 
                 alt="Previous Year Papers" 
-                className="w-full h-auto object-contain rounded-lg mx-auto"
+                className="w-full h-auto object-contain rounded-lg mx-auto max-w-sm max-h-80"
               />
             </div>
             
@@ -154,7 +154,7 @@ const Home = () => {
               <img 
                 src={img3} 
                 alt="Expert Guidance" 
-                className="w-full h-auto object-contain rounded-lg mx-auto"
+                className="w-full h-auto object-contain rounded-lg mx-auto max-w-sm max-h-80"
               />
             </div>
           </div>
